@@ -235,7 +235,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Models, predictive metrics, and UI features are not implemented yet.
+- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Binary baseline code is implemented but still awaiting local execution; final model selection, final test metrics, and UI features are not complete.
 
 ## Future work
 - Complete the leakage-safe binary and five-class ML experiments.
