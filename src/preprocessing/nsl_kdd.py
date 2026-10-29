@@ -1,8 +1,8 @@
 """Load and label the official NSL-KDD train/test files.
 
 The loader preserves the official split. It does not download, generate, or
-randomly split data. Transformations for ML models belong in later pipeline
-steps; this module only validates the raw schema and maps target labels.
+randomly split data. It validates the raw schema and maps target labels;
+feature transformations are implemented separately in pipeline.py.
 """
 from __future__ import annotations
 
