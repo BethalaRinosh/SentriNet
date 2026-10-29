@@ -348,8 +348,8 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Feature importance is exploratory and impurity-based. Cross-validation/tuning (Step 8) has been locally verified. Step 9's official-test evaluation script is implemented, but its full local run is pending. Model persistence and UI features are not complete.
 
 ## Future work
-- Verify the cross-validation/tuning experiments, then complete final held-out evaluation on the official `KDDTest+`.
-- Add a reproducible model comparison and a local interactive dashboard.
+- Run Step 9 locally, inspect the official-test metrics and distribution-shift report, and keep the test set out of all later tuning decisions.
+- Save the selected fitted pipelines with reproducible metadata, then build the FastAPI service and local interactive dashboard.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
 - Investigate explainability and robustness to distribution shift.
 
