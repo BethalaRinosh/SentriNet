@@ -113,3 +113,36 @@ def test_local_frontend_cors_preflight_is_allowed():
     )
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:5500"
+
+
+
+def test_non_finite_numeric_feature_is_rejected():
+    record = feature_record()
+    record["src_bytes"] = float("nan")
+    response = client.post("/predict/binary", json={"records": [record]})
+    assert response.status_code == 422
+    assert "must be finite" in response.json()["detail"]
+
+
+def test_infinite_numeric_feature_is_rejected():
+    record = feature_record()
+    record["src_bytes"] = float("inf")
+    response = client.post("/predict/binary", json={"records": [record]})
+    assert response.status_code == 422
+    assert "must be finite" in response.json()["detail"]
+
+
+def test_negative_numeric_feature_is_rejected():
+    record = feature_record()
+    record["src_bytes"] = -1
+    response = client.post("/predict/binary", json={"records": [record]})
+    assert response.status_code == 422
+    assert "must be non-negative" in response.json()["detail"]
+
+
+def test_blank_categorical_feature_is_rejected():
+    record = feature_record()
+    record["protocol_type"] = "   "
+    response = client.post("/predict/binary", json={"records": [record]})
+    assert response.status_code == 422
+    assert "must not be empty" in response.json()["detail"]
