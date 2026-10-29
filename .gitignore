@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Raw datasets: obtain NSL-KDD separately; never commit it
+data/raw/*
+!data/raw/.gitkeep
+data/processed/
+*.csv
+*.txt
+!requirements.txt
+!README.md
+
+# Generated artifacts and reports
+models/*
+!models/.gitkeep
+reports/*
+!reports/.gitkeep
+*.joblib
+*.pkl
+*.pickle
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.html
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
