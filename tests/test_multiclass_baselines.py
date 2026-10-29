@@ -19,12 +19,14 @@ def test_five_multiclass_baseline_classifiers_are_configured():
 
 
 def test_multiclass_metrics_include_all_five_classes():
+    # One example per class means macro and weighted F1 have equal weights.
     y_true = pd.Series(["Normal", "DoS", "Probe", "R2L", "U2R"])
     y_pred = ["Normal", "DoS", "Probe", "Normal", "U2R"]
     metrics = calculate_multiclass_metrics(y_true, y_pred)
 
     assert metrics["accuracy"] == pytest.approx(0.8)
-    assert metrics["f1_macro"] < metrics["f1_weighted"]
+    assert metrics["f1_macro"] == pytest.approx(0.7333333333)
+    assert metrics["f1_weighted"] == pytest.approx(0.7333333333)
     assert list(MULTICLASS_ORDER) == ["Normal", "DoS", "Probe", "R2L", "U2R"]
 
 
