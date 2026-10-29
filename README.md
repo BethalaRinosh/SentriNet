@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–12 are implemented in the repository.** The author locally verified Steps 9–11, including 37 passing tests after Step 11. Step 12 adds a responsive browser dashboard; run the full suite again after pulling the latest changes.
+> **Project status: Steps 1–13 are implemented in the repository.** Steps 9–12 were implemented and the author verified the Step 12 test suite locally (38 passed). Step 13 hardens API input validation; run the updated tests locally after pulling the latest changes.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -382,6 +382,26 @@ The backend allows cross-origin requests from the local development origins on p
 
 **Validation status:** frontend and CORS changes are committed. Run `python -m pytest tests/test_api.py -q` and `python -m pytest -q` locally after pulling these changes. Browser interaction should also be checked by starting both servers and submitting a record.
 
+
+## API input hardening (Step 13)
+
+Before inference, the API validates every required model feature:
+- All 40 model features must be present.
+- Categorical fields (`protocol_type`, `service`, `flag`) must be non-empty strings. Unseen but non-empty category values remain allowed because the fitted encoder uses `handle_unknown="ignore"`.
+- Numeric fields must be JSON numbers, not booleans, and must be finite and non-negative. This rejects values such as `NaN`, `Infinity`, and negative connection counts/durations before they reach scikit-learn.
+- Invalid inputs return HTTP 422 with a feature-specific explanation. Extra fields remain ignored by inference; the request envelope itself forbids unknown top-level fields.
+
+These checks validate basic data integrity, not whether a record is realistic network traffic. They do not guarantee the input came from a live packet or from the NSL-KDD dataset.
+
+Run the focused and full tests:
+
+```bash
+python -m pytest tests/test_api.py -q
+python -m pytest -q
+```
+
+The new regression tests cover non-finite numbers, negative numeric values, and blank categorical values in addition to the existing request, model-readiness, and CORS tests.
+
 ## Results
 Internal validation and cross-validation results are available for model selection. The official held-out metrics are summarized in the Step 9 table above; the author's generated `reports/official_evaluation/official_evaluation_summary.csv` and `official_evaluation_details.json` contain the full local report.
 
@@ -510,4 +530,5 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 9:** Added `src/training/official_evaluation.py` and `tests/test_official_evaluation.py`. The script locks the Step 8 parameters, fits binary and five-class Random Forest/Decision Tree pipelines on full `KDDTrain+`, then loads `KDDTest+` for held-out evaluation. It writes aggregate metrics, detailed per-class reports, confusion matrices, runtime/throughput, and train/test distribution comparisons. The author ran the official evaluation and confirmed the focused tests (5 passed) and full suite (22 passed), including a clean rerun.
 - **Step 10:** Added `src/training/save_models.py` to refit the two Random Forest candidates selected by training-only CV and save their complete preprocessing/model pipelines with provenance metadata. Added `src/inference/predict.py` and `tests/test_model_persistence.py`. The author confirmed 7 focused tests and 29 total tests passed, then generated both artifacts and metadata using only `KDDTrain+`.
 - **Step 11:** Added `app/backend/main.py` with `/health`, `/predict/binary`, and `/predict/multiclass` endpoints, input validation, and actionable errors when artifacts are missing. Added `tests/test_api.py` using synthetic records and stub inference. The author ran the focused API tests (8 passed) and full suite (37 passed); one non-blocking Starlette deprecation warning remains.
-- **Step 12:** Added the responsive HTML/CSS/JavaScript dashboard in `app/frontend/`, with 40-feature form generation, binary/five-class mode selection, API health status, result/confidence display, illustrative form values, and error/loading states. Added restricted local-development CORS origins so the separately served frontend can call FastAPI. Browser and post-change test verification remain to be performed locally.
+- **Step 12:** Added the responsive HTML/CSS/JavaScript dashboard in `app/frontend/`, with 40-feature form generation, binary/five-class mode selection, API health status, result/confidence display, illustrative form values, and error/loading states. Added restricted local-development CORS origins so the separately served frontend can call FastAPI. The author verified 9 API tests and 38 total tests after the CORS change.
+- **Step 13:** Hardened API validation to reject non-finite and negative numeric features and blank categorical values before model inference. Added regression tests and documented the input contract. Local verification of the new tests remains pending.
