@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–7 complete; Step 8 implemented, local verification pending.** The repository health review found no blocking issue in the current training pipeline. Step 8 adds five-fold stratified cross-validation and randomized hyperparameter tuning for Random Forest and Decision Tree on both targets. The official `KDDTest+` remains reserved for final evaluation.
+> **Project status: Steps 1–8 complete and locally verified.** The full test suite passes (17 tests), and the full-data five-fold cross-validation/tuning run completed for both binary and five-class targets. The official `KDDTest+` remains reserved for final evaluation.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -215,15 +215,28 @@ Generated files are written to `reports/cv_tuning/` (ignored by Git):
 
 **Evaluation boundary:** the official `KDDTest+.txt` is never loaded or scored in this step. Cross-validation results are model-selection evidence, not final held-out test performance. Rare U2R examples can make fold-level scores volatile even with stratification. Step 9 remains responsible for the final evaluation on the untouched official test split.
 
-**Validation status:** code and configuration are committed; local test-suite and full-data tuning verification are pending. Run `python -m pytest -q` and then `python -m src.training.cv_tuning`; review the complete output and generated files before treating Step 8 as verified.
+**Validation status:** verified locally. The author ran `python -m pytest -q` (17 passed in 2.52 seconds) and `python -m src.training.cv_tuning` on the full official training split. All four searches completed, all three report files were generated, and the command confirmed that `KDDTest+` was not loaded or scored.
 
 ## Results
-Internal validation baselines have been measured for binary and five-class tasks. These are not final results: the official `KDDTest+` has not been used for model evaluation. Steps 1–7 are locally validated.
+Internal validation and cross-validation results have been measured for binary and five-class tasks. These are model-selection results, **not final held-out test results**: the official `KDDTest+` has not been used for model evaluation.
+
+### Baseline validation results
 
 | Task | Model | Accuracy | Macro F1 | Weighted F1 | Status |
 |---|---|---:|---:|---:|---|
 | Binary | Random Forest | 0.998167 | 0.998158 | 0.998166 | Internal validation only |
 | Five-class | Random Forest | 0.998730 | 0.936115 | 0.998709 | Internal validation only |
+
+### Five-fold cross-validation after randomized tuning
+
+| Task | Model | Mean CV macro F1 | Fold standard deviation |
+|---|---|---:|---:|
+| Binary | Random Forest | 0.998955 | 0.000193 |
+| Binary | Decision Tree | 0.998516 | 0.000199 |
+| Five-class | Random Forest | 0.946326 | 0.020758 |
+| Five-class | Decision Tree | 0.910170 | 0.019869 |
+
+Selected parameters are recorded in `reports/cv_tuning/cv_tuning_summary.csv` and the detailed per-candidate records are in `reports/cv_tuning/cv_tuning_details.json`. The results favor Random Forest for both tasks under the tested search spaces. The five-class score varies more across folds, consistent with the difficulty and limited support of minority attack classes. The search tested only four parameter combinations per model/task, so these are good candidates, not proof of a globally optimal configuration.
 
 Accuracy will not be reported alone. The final analysis will discuss class imbalance, rare R2L/U2R examples, and the distribution difference between NSL-KDD's official train and test sets.
 
@@ -323,3 +336,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 5:** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. The author ran the script successfully and the full test suite passed (7 tests).
 - **Step 6:** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The author ran the full suite locally (10 passed) and completed the baseline experiment on a 30,000-row training sample. Random Forest led the internal validation comparison (macro F1 0.998158); the official `KDDTest+` was not loaded. Results are documented as preliminary, not final test performance.
 - **Step 7:** Added five-class baseline models for Normal, DoS, Probe, R2L, and U2R, per-class reports, confusion matrices, overall class-aware metrics, and reproducible report outputs. The author ran the full experiment on `KDDTrain+` only with a stratified 100,778/25,195 training/validation split; the full test suite passed (13 tests). After configuring Linear SVM with `dual=False`, `max_iter=5000`, and `tol=1e-3`, the rerun completed without a convergence warning. Random Forest led by macro F1 (0.936115), followed by Decision Tree (0.930726). `KDDTest+` was not loaded.
+- **Step 8:** Added five-fold stratified cross-validation and randomized hyperparameter tuning for Random Forest and Decision Tree on both binary and five-class targets. The author ran the full test suite (17 passed in 2.52 seconds) and the full-data tuning run successfully. Best mean CV macro F1 was 0.998955 for binary Random Forest and 0.946326 for five-class Random Forest. Generated CSV, JSON, and PNG reports were confirmed; `KDDTest+` was not loaded or scored.
