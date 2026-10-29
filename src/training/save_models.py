@@ -7,7 +7,9 @@ The official KDDTest+ file is never opened by this module.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import platform
 from pathlib import Path
 from typing import Any
 
@@ -87,7 +89,11 @@ def build_model_metadata(
             "StandardScaler for numeric features",
             "OneHotEncoder(handle_unknown='ignore') for protocol_type, service, flag",
         ],
-        "sklearn_version": sklearn.__version__,
+        "runtime": {
+            "python_version": platform.python_version(),
+            "scikit_learn_version": sklearn.__version__,
+            "joblib_version": joblib.__version__,
+        },
         "artifact": selection["artifact_name"],
         "warning": (
             "Benchmark model only. Confidence values from predict_proba are "
@@ -106,10 +112,17 @@ def save_selected_models(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Only the official training split is loaded here.
+    train_path = Path(train_path)
     train_frame = add_target_columns(load_nsl_kdd_file(train_path))
+    digest = hashlib.sha256()
+    with train_path.open("rb") as data_file:
+        for chunk in iter(lambda: data_file.read(1024 * 1024), b""):
+            digest.update(chunk)
     metadata: dict[str, Any] = {
         "project": "SentriNet",
         "training_dataset": "NSL-KDD KDDTrain+",
+        "training_file": train_path.name,
+        "training_file_sha256": digest.hexdigest(),
         "training_rows": int(len(train_frame)),
         "official_test_loaded": False,
         "selection_source": "Step 8 training-only cross-validation",
