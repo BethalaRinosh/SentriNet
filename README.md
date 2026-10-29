@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 3 of 16 complete.** The author ran `python -m src.eda` successfully on the real official NSL-KDD files. All five plots were generated locally, and the script reported the train/test class-proportion gap. No models have been trained and no predictive metrics are available.
+> **Project status: Step 4 of 16 in progress.** Steps 1–3 are complete, including a successful local EDA run. The leakage-safe preprocessing pipeline and unit tests are committed; local test execution is pending. No models have been trained and no predictive metrics are available.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -71,6 +71,41 @@ The generated reports are ignored by Git; the script is the reproducible source 
 **Observations supported by the Step 2 dataset inspection:** the training split has 995 R2L and 52 U2R records, while the official test split has 2,885 R2L and 67 U2R records. R2L's proportion is much larger in the test split, so the official test distribution is not interchangeable with the training distribution. U2R has low support in both splits. The class-proportion plot is intended to make this gap easier to see; macro F1 and per-class recall will be important later. These are properties of the dataset, not evidence of model performance.
 
 **Validation status:** confirmed locally. The EDA command completed and saved all five expected figures under `reports/eda/`. The observed test-minus-train class-proportion differences were R2L +12.01 percentage points, Normal -10.38 pp, DoS -3.37 pp, Probe +1.49 pp, and U2R +0.26 pp. These are descriptive dataset differences, not model metrics.
+
+## Preprocessing pipeline (Step 4)
+
+The module `src/preprocessing/pipeline.py` defines a reusable, **unfitted** preprocessing and model pipeline:
+
+- Uses the 40 intended model inputs, excluding `num_outbound_cmds`, the constant-zero feature.
+- One-hot encodes `protocol_type`, `service`, and `flag` with `handle_unknown="ignore"`, so an unseen category in the official test set does not crash inference.
+- Standardizes numeric features with `StandardScaler`.
+- Drops raw attack labels and difficulty metadata from model inputs. The target is selected explicitly as either `binary_label` or `class_label`.
+- Keeps preprocessing inside the scikit-learn `Pipeline`, so fitting the pipeline on training data (or a cross-validation fold) learns scaler statistics and categories only from that training partition.
+- Offers optional `class_weight="balanced"` for estimators that support it. The weights are computed by scikit-learn during each fit from that fit's labels. Estimators without `class_weight` must not enable this option.
+
+Example use in later training code:
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from src.preprocessing.pipeline import build_model_pipeline, select_features_and_target
+
+X_train, y_train = select_features_and_target(train_frame, target="class_label")
+pipeline = build_model_pipeline(
+    RandomForestClassifier(random_state=42),
+    balance_classes=True,
+)
+pipeline.fit(X_train, y_train)
+```
+
+Do not fit on `KDDTest+`. Only transform/predict with the official test split after fitting the pipeline on training data. The code above is an example of the API, not a claim that a model has been trained.
+
+Unit tests are in `tests/test_preprocessing.py`. Run them from the repository root:
+
+```bash
+python -m pytest tests/test_preprocessing.py -q
+```
+
+**Validation status:** implementation and tests are committed, but test execution on the author's local environment is still pending.
 
 ## Results
 **No measured results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
@@ -155,7 +190,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- At this initial stage, no preprocessing, models, metrics, or UI features have been implemented.
+- Preprocessing is implemented, but has not yet been confirmed by a local test run. Models, predictive metrics, and UI features are not implemented yet.
 
 ## Future work
 - Complete the leakage-safe binary and five-class ML experiments.
@@ -171,3 +206,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton.
 - **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. The author ran the command locally: train = 125,973 rows, test = 22,544 rows; both had zero reported missing values and duplicate rows, and all labels mapped successfully.
 - **Step 3:** Added and locally ran `src/eda.py`; all five figures were generated from the official files. The largest class proportion differences (test minus train) were R2L +12.01 pp and Normal -10.38 pp. No model training or test-set fitting occurred.
+- **Step 4 (local test run pending):** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional training-only balanced class weights, and preprocessing unit tests.
