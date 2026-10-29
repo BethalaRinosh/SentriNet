@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 2 of 16 (loader implemented; local validation pending).** The user confirmed that both full NSL-KDD files exist locally and are excluded by `.gitignore`. A schema-validating loader and label mapping have been added, but the files cannot be read from this remote coding session. Run the validation command below on the machine containing the dataset before treating this step as verified. No models have been trained and no metrics are available.
+> **Project status: Step 2 of 16 complete.** The author ran the loader locally against the full NSL-KDD files. Both official splits loaded, all labels mapped, and the validation command completed successfully. No models have been trained and no predictive metrics are available.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -12,7 +12,7 @@ Network intrusion detection systems help identify traffic patterns associated wi
 ## Dataset
 **Primary dataset:** NSL-KDD, using the official `KDDTrain+` and `KDDTest+` split. We will not randomly re-split the official test set.
 
-Required files (download these before resuming Step 2):
+Required local files (already validated for this project):
 - `KDDTrain+.txt` (full official training split)
 - `KDDTest+.txt` (full official test split)
 
