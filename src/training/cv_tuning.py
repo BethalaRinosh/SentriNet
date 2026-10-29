@@ -59,7 +59,7 @@ def create_tuning_candidates(
         ),
         "Decision Tree": (
             DecisionTreeClassifier(
-                random_state=RANDOM_STATE,
+                random_state=random_state,
                 class_weight="balanced",
             ),
             {
