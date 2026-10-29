@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–11 are implemented in the repository.** Steps 9 and 10 were locally validated by the author. Step 11's API source and tests are committed; run the API tests locally to confirm them in your environment.
+> **Project status: Steps 1–12 are implemented in the repository.** The author locally verified Steps 9–11, including 37 passing tests after Step 11. Step 12 adds a responsive browser dashboard; run the full suite again after pulling the latest changes.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -351,7 +351,36 @@ python -m pytest tests/test_api.py -q
 python -m pytest -q
 ```
 
-Tests use synthetic feature records and stub inference, so they do not require saved model artifacts or NSL-KDD files. They validate API request handling, not model accuracy. The API source and tests are committed; record local results after running these commands.
+Tests use synthetic feature records and stub inference, so they do not require saved model artifacts or NSL-KDD files. They validate API request handling, not model accuracy. The author ran the API tests (8 passed) and the full suite (37 passed). A non-blocking Starlette deprecation warning was reported by the local environment.
+
+## Browser dashboard (Step 12)
+
+The plain HTML/CSS/JavaScript dashboard lives in `app/frontend/`:
+- `index.html`: layout and dashboard sections.
+- `styles.css`: responsive dark interface.
+- `app.js`: builds the 40-feature form, checks API health, submits predictions, and displays results and errors.
+
+### Run the dashboard locally
+
+1. In a PowerShell terminal at the repository root, start the backend:
+
+   ```powershell
+   uvicorn app.backend.main:app --reload
+   ```
+
+2. Open a **second** PowerShell terminal at the repository root and serve the frontend:
+
+   ```powershell
+   python -m http.server 5500 --directory app/frontend
+   ```
+
+3. Open [http://127.0.0.1:5500](http://127.0.0.1:5500).
+
+The dashboard checks `/health` and displays whether the API and saved artifacts are available. Choose Binary or Attack family mode, enter the required features, then click **Analyze connection**. The illustrative-value button fills a hand-entered example for UI testing only; it is not a verified NSL-KDD record or live network capture. Reset restores numeric inputs to zero and categorical inputs to their first options.
+
+The backend allows cross-origin requests from the local development origins on ports 5500 and 8000. Keep the API and dashboard local during development. This UI accepts structured connection features and does not capture traffic from a network interface.
+
+**Validation status:** frontend and CORS changes are committed. Run `python -m pytest tests/test_api.py -q` and `python -m pytest -q` locally after pulling these changes. Browser interaction should also be checked by starting both servers and submitting a record.
 
 ## Results
 Internal validation and cross-validation results are available for model selection. The official held-out metrics are summarized in the Step 9 table above; the author's generated `reports/official_evaluation/official_evaluation_summary.csv` and `official_evaluation_details.json` contain the full local report.
@@ -384,7 +413,7 @@ Accuracy will not be reported alone. The final analysis will discuss class imbal
 Screenshots will be added only after the interface is implemented and run.
 
 ## Setup and run
-**Current status:** training, inference, and the FastAPI backend are implemented. The browser dashboard is not implemented yet.
+**Current status:** training, inference, the FastAPI backend, and the browser dashboard are implemented.
 
 Recommended environment: Python 3.10 or newer.
 
@@ -407,7 +436,7 @@ python -m pip install -r requirements.txt
 python -m src.inspect_dataset
 ```
 
-This reports shapes, dtypes, missing values, duplicate rows, binary/five-class distributions, and raw attack-label counts for both official splits. It does not train a model. Dataset acquisition and training are documented above. Generate the model artifacts, then start the API with `uvicorn app.backend.main:app --reload`; visit `http://127.0.0.1:8000/docs` to try the endpoints. The browser UI will be added in a later step.
+This reports shapes, dtypes, missing values, duplicate rows, binary/five-class distributions, and raw attack-label counts for both official splits. It does not train a model. Dataset acquisition and training are documented above. Generate the model artifacts, then start the API with `uvicorn app.backend.main:app --reload`; visit `http://127.0.0.1:8000/docs` to try the endpoints. The browser dashboard is documented in the Step 12 section above.
 
 ## Planned folder structure
 ```text
@@ -461,7 +490,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Feature importance is exploratory and impurity-based. Step 9's official-test evaluation and Step 10's persistence/inference code were locally validated. Step 11 adds the FastAPI service; the browser dashboard is not implemented yet.
 
 ## Future work
-- Build the local interactive dashboard on top of the FastAPI service.
+- Verify the dashboard workflow in a browser and consider importing a batch of records for analysis.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
 - Investigate explainability and robustness to distribution shift.
 
@@ -480,4 +509,5 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 8:** Added five-fold stratified cross-validation and randomized hyperparameter tuning for Random Forest and Decision Tree on both binary and five-class targets. The author ran the full test suite (17 passed in 2.52 seconds) and the full-data tuning run successfully. Best mean CV macro F1 was 0.998955 for binary Random Forest and 0.946326 for five-class Random Forest. Generated CSV, JSON, and PNG reports were confirmed; `KDDTest+` was not loaded or scored.
 - **Step 9:** Added `src/training/official_evaluation.py` and `tests/test_official_evaluation.py`. The script locks the Step 8 parameters, fits binary and five-class Random Forest/Decision Tree pipelines on full `KDDTrain+`, then loads `KDDTest+` for held-out evaluation. It writes aggregate metrics, detailed per-class reports, confusion matrices, runtime/throughput, and train/test distribution comparisons. The author ran the official evaluation and confirmed the focused tests (5 passed) and full suite (22 passed), including a clean rerun.
 - **Step 10:** Added `src/training/save_models.py` to refit the two Random Forest candidates selected by training-only CV and save their complete preprocessing/model pipelines with provenance metadata. Added `src/inference/predict.py` and `tests/test_model_persistence.py`. The author confirmed 7 focused tests and 29 total tests passed, then generated both artifacts and metadata using only `KDDTrain+`.
-- **Step 11:** Added `app/backend/main.py` with `/health`, `/predict/binary`, and `/predict/multiclass` endpoints, input validation, and actionable errors when artifacts are missing. Added `tests/test_api.py` using synthetic records and stub inference. API tests are committed but must be run locally before claiming local validation.
+- **Step 11:** Added `app/backend/main.py` with `/health`, `/predict/binary`, and `/predict/multiclass` endpoints, input validation, and actionable errors when artifacts are missing. Added `tests/test_api.py` using synthetic records and stub inference. The author ran the focused API tests (8 passed) and full suite (37 passed); one non-blocking Starlette deprecation warning remains.
+- **Step 12:** Added the responsive HTML/CSS/JavaScript dashboard in `app/frontend/`, with 40-feature form generation, binary/five-class mode selection, API health status, result/confidence display, illustrative form values, and error/loading states. Added restricted local-development CORS origins so the separately served frontend can call FastAPI. Browser and post-change test verification remain to be performed locally.
