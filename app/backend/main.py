@@ -1,6 +1,7 @@
 """FastAPI service for SentriNet's saved NSL-KDD classifiers."""
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any
 
@@ -74,10 +75,16 @@ def _validate_records(records: list[dict[str, Any]]) -> None:
             )
 
         for name in CATEGORICAL_FEATURES:
-            if not isinstance(record[name], str):
+            value = record[name]
+            if not isinstance(value, str):
                 raise HTTPException(
                     status_code=422,
                     detail=f"Record {index}: feature '{name}' must be a string.",
+                )
+            if not value.strip():
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Record {index}: feature '{name}' must not be empty.",
                 )
 
         for name in NUMERIC_FEATURES:
@@ -86,6 +93,16 @@ def _validate_records(records: list[dict[str, Any]]) -> None:
                 raise HTTPException(
                     status_code=422,
                     detail=f"Record {index}: feature '{name}' must be numeric.",
+                )
+            if not math.isfinite(value):
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Record {index}: feature '{name}' must be finite.",
+                )
+            if value < 0:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Record {index}: feature '{name}' must be non-negative.",
                 )
 
 
