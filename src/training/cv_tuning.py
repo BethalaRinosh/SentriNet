@@ -36,7 +36,9 @@ TARGETS = {
 }
 
 
-def create_tuning_candidates(task: str) -> dict[str, tuple[Any, dict[str, list[Any]]]]:
+def create_tuning_candidates(
+    task: str, random_state: int = RANDOM_STATE
+) -> dict[str, tuple[Any, dict[str, list[Any]]]]:
     """Return the two baseline leaders and compact randomized-search spaces."""
     if task not in TARGETS:
         raise ValueError(f"Unsupported task {task!r}; choose one of {list(TARGETS)}.")
@@ -135,7 +137,7 @@ def run_cv_tuning(
             "models": {},
         }
 
-        for model_name, (estimator, parameter_space) in create_tuning_candidates(target).items():
+        for model_name, (estimator, parameter_space) in create_tuning_candidates(\n            target, random_state=random_state\n        ).items():
             pipeline = build_model_pipeline(estimator)
             search = RandomizedSearchCV(
                 estimator=pipeline,
