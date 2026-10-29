@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import matplotlib
 matplotlib.use("Agg")  # Generate files without requiring an interactive window.
 import matplotlib.pyplot as plt
@@ -22,9 +23,6 @@ from src.preprocessing.nsl_kdd import FEATURE_COLUMNS, load_official_split
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = PROJECT_ROOT / "reports" / "eda"
 CLASS_ORDER = ["Normal", "DoS", "Probe", "R2L", "U2R"]
-PALETTE = {"Normal": "#38bdf8", "DoS": "#fb7185", "Probe": "#fbbf24",
-           "R2L": "#a78bfa", "U2R": "#34d399"}
-
 
 def _save_plot(fig: plt.Figure, filename: str) -> None:
     """Save a consistently styled plot and release its memory."""
@@ -119,8 +117,8 @@ def plot_numeric_distributions(data: pd.DataFrame) -> None:
     for ax, column in zip(axes, columns):
         values = data[[column, "split", "class_label"]].copy()
         # Values are non-negative in the NSL-KDD schema; log1p retains zeros.
-        values["log_value"] = values[column].clip(lower=0).map(
-            lambda value: __import__("math").log1p(float(value))
+        values["log_value"] = np.log1p(
+            pd.to_numeric(values[column], errors="raise").clip(lower=0)
         )
         sns.histplot(data=values, x="log_value", hue="split", bins=45,
                      element="step", stat="density", common_norm=False,
