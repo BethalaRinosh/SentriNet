@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–9 implemented; Steps 1–8 and the Step 9 full-data evaluation have been run locally by the author.** The official `KDDTest+` metrics are recorded below. The Step 9 unit test had one incorrect expected ROC-AUC value; its expected value has been corrected to 1.0 because the toy scores rank every positive above every negative. Re-run the test suite after pulling the fix.
+> **Project status: Steps 1–10 are implemented in the repository.** The author has run the Step 9 official evaluation and confirmed the full test suite passes (22 tests). Step 10 adds model persistence and reusable inference; the local artifact-training command and new Step 10 tests still need to be run after pulling the latest changes.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -26,9 +26,10 @@ Put both files in `data/raw/`, so the final paths are `data/raw/KDDTrain+.txt` a
 5. Train at least five classical ML models for binary and five-class tasks.
 6. Use stratified cross-validation and tune the two leading candidates on training data.
 7. Evaluate against the fixed official test set with class-aware metrics, confusion matrices, ROC-AUC where applicable, and measured runtime.
-8. Save the chosen fitted pipeline and serve predictions through a FastAPI backend with a plain HTML/CSS/JS interface.
+8. Persist the Random Forest candidates selected by training-only cross-validation, including the fitted preprocessing pipelines and JSON metadata.
+9. Load the saved pipelines for reproducible predictions; then expose inference through FastAPI and a plain HTML/CSS/JS interface.
 
-Only steps explicitly marked as locally validated should be treated as verified; the remaining pipeline is planned and will be implemented incrementally.
+Only steps explicitly marked as locally validated should be treated as verified. Step 10's source and tests are committed, but the new artifact-training run must still be validated locally.
 
 ## Dataset validation (Step 2)
 
@@ -244,7 +245,7 @@ python -m pytest tests/test_official_evaluation.py -q
 python -m pytest -q
 ```
 
-**Local evaluation results (official `KDDTest+`, 22,544 rows):** the author ran the full-data evaluation successfully. The first test run exposed one incorrect expectation in the unit test for ROC-AUC, not an error in the evaluation code. The expected value is corrected in the latest commit; the full test suite must be rerun after pulling that fix.
+**Local evaluation results (official `KDDTest+`, 22,544 rows):** the author ran the full-data evaluation successfully. After correcting a unit-test expectation for ROC-AUC, the author pulled the fix and confirmed the focused tests passed (5/5) and the full test suite passed (22/22), including a further clean rerun.
 
 | Task | Model | Accuracy | Macro precision | Macro recall | Macro F1 | Weighted F1 | ROC-AUC |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -256,6 +257,56 @@ python -m pytest -q
 **Interpretation:** the Decision Tree narrowly leads the binary task on accuracy and macro F1, while Random Forest has substantially higher binary ROC-AUC, meaning its Attack scores rank examples well even though its default class threshold yields lower Attack recall. For five-class classification, both models struggle badly with R2L: Random Forest recall is 0.01 and Decision Tree recall is 0.05 on 2,885 R2L test records. The five-class Random Forest macro F1 (0.514) is much lower than its weighted F1 (0.714), showing that aggregate performance is much stronger on common classes than across all five classes equally.
 
 The official test split has 2,885 R2L records compared with 995 in training. This distribution shift is a major limitation and likely contributes to poor R2L generalization. U2R test support is only 67, so its per-class scores are also unstable. These results are the held-out evaluation of the locked Step 8 configurations. **Do not tune hyperparameters against these test results**; further changes must be selected using training-only cross-validation or a separate validation split, with the official test retained as the final benchmark.
+
+## Model persistence and reusable inference (Step 10)
+
+The module `src/training/save_models.py` fits and saves the two Random Forest pipelines selected by Step 8's training-only cross-validation. Random Forest led the tested candidates on mean CV macro F1 for both targets: 0.998955 for binary classification and 0.946326 for five-class classification. These model choices are based on `KDDTrain+` CV results, not the official test scores.
+
+After placing the official `KDDTrain+.txt` in `data/raw/`, run:
+
+```bash
+python -m src.training.save_models
+```
+
+The command loads only `KDDTrain+`, refits each selected pipeline on all 125,973 training rows, and writes these local artifacts under `models/`:
+
+- `sentrinet_binary.joblib`: fitted preprocessing and binary Random Forest.
+- `sentrinet_multiclass.joblib`: fitted preprocessing and five-class Random Forest.
+- `metadata.json`: task, model parameters, feature order, label order, scikit-learn version, training-row count, and the training-only CV selection rationale.
+
+The `models/` artifacts are ignored by Git and must be generated locally. Raw data and model binaries are not committed. Keep the generated metadata alongside the corresponding artifacts; joblib files should only be loaded from trusted sources.
+
+### Inference helper
+
+`src/inference/predict.py` loads a saved pipeline and predicts from a list of connection-feature dictionaries or a pandas DataFrame. Every record must contain the 40 model features in `src/preprocessing/pipeline.py`; extra fields are ignored and missing features produce a clear error. Unknown categorical values are handled by the fitted encoder's `handle_unknown="ignore"` setting.
+
+Example after generating the artifacts:
+
+```python
+from src.inference.predict import predict_records
+
+record = {
+    # Supply all 40 features defined in MODEL_FEATURE_COLUMNS.
+    # Example categorical values:
+    "protocol_type": "tcp",
+    "service": "http",
+    "flag": "SF",
+    # Add the remaining numeric and categorical features here.
+}
+result = predict_records([record], task="binary_label")
+print(result)
+```
+
+Each result contains a predicted label and the maximum class score as `confidence`. Binary predictions also include `attack_probability`. These are model scores, not guaranteed calibrated probabilities. This helper does not capture live packets or replace a production network security control.
+
+Run the focused tests and then the full suite:
+
+```bash
+python -m pytest tests/test_model_persistence.py -q
+python -m pytest -q
+```
+
+**Validation status:** source files and tests are committed; the author must run the new tests and `python -m src.training.save_models` locally before this step can be marked fully validated.
 
 ## Results
 Internal validation and cross-validation results are available for model selection. Official held-out test results should be taken only from the author's run of `reports/official_evaluation/official_evaluation_summary.csv`; they are not hard-coded into this README.
@@ -356,11 +407,11 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based. Cross-validation/tuning (Step 8) has been locally verified. Step 9's official-test evaluation script is implemented, but its full local run is pending. Model persistence and UI features are not complete.
+- Feature importance is exploratory and impurity-based. Step 9's official-test evaluation has been run locally and the full test suite passed (22 tests). Step 10's model-persistence and inference code still requires local validation. The FastAPI service and dashboard are not implemented yet.
 
 ## Future work
-- Run Step 9 locally, inspect the official-test metrics and distribution-shift report, and keep the test set out of all later tuning decisions.
-- Save the selected fitted pipelines with reproducible metadata, then build the FastAPI service and local interactive dashboard.
+- Run Step 10's artifact-training command locally and confirm the generated model files and metadata; keep the official test set out of model selection.
+- Build the FastAPI service and local interactive dashboard on top of the tested inference helper.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
 - Investigate explainability and robustness to distribution shift.
 
@@ -377,4 +428,5 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 6:** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The author ran the full suite locally (10 passed) and completed the baseline experiment on a 30,000-row training sample. Random Forest led the internal validation comparison (macro F1 0.998158); the official `KDDTest+` was not loaded. Results are documented as preliminary, not final test performance.
 - **Step 7:** Added five-class baseline models for Normal, DoS, Probe, R2L, and U2R, per-class reports, confusion matrices, overall class-aware metrics, and reproducible report outputs. The author ran the full experiment on `KDDTrain+` only with a stratified 100,778/25,195 training/validation split; the full test suite passed (13 tests). After configuring Linear SVM with `dual=False`, `max_iter=5000`, and `tol=1e-3`, the rerun completed without a convergence warning. Random Forest led by macro F1 (0.936115), followed by Decision Tree (0.930726). `KDDTest+` was not loaded.
 - **Step 8:** Added five-fold stratified cross-validation and randomized hyperparameter tuning for Random Forest and Decision Tree on both binary and five-class targets. The author ran the full test suite (17 passed in 2.52 seconds) and the full-data tuning run successfully. Best mean CV macro F1 was 0.998955 for binary Random Forest and 0.946326 for five-class Random Forest. Generated CSV, JSON, and PNG reports were confirmed; `KDDTest+` was not loaded or scored.
-- **Step 9:** Added `src/training/official_evaluation.py` and `tests/test_official_evaluation.py`. The script locks the Step 8 parameters, fits binary and five-class Random Forest/Decision Tree pipelines on full `KDDTrain+`, then loads `KDDTest+` for held-out evaluation. It writes aggregate metrics, detailed per-class reports, confusion matrices, runtime/throughput, and train/test distribution comparisons. Local test execution and the full-data evaluation are pending.
+- **Step 9:** Added `src/training/official_evaluation.py` and `tests/test_official_evaluation.py`. The script locks the Step 8 parameters, fits binary and five-class Random Forest/Decision Tree pipelines on full `KDDTrain+`, then loads `KDDTest+` for held-out evaluation. It writes aggregate metrics, detailed per-class reports, confusion matrices, runtime/throughput, and train/test distribution comparisons. The author ran the official evaluation and confirmed the focused tests (5 passed) and full suite (22 passed), including a clean rerun.
+- **Step 10:** Added `src/training/save_models.py` to refit the two Random Forest candidates selected by training-only CV and save their complete preprocessing/model pipelines with provenance metadata. Added `src/inference/predict.py` for validated, repeatable prediction from feature records and `tests/test_model_persistence.py` for metadata and inference behavior. The README was corrected to reflect Step 9's actual validation status. Step 10's tests and artifact-training command are pending local execution.
