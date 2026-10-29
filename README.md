@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–8 are locally verified; Step 9 is implemented and ready for the author's local run.** Step 9 evaluates locked Step 8 candidates on the official `KDDTest+` split. Official-test metrics have not been claimed or recorded until the author runs the new evaluation script locally.
+> **Project status: Steps 1–9 implemented; Steps 1–8 and the Step 9 full-data evaluation have been run locally by the author.** The official `KDDTest+` metrics are recorded below. The Step 9 unit test had one incorrect expected ROC-AUC value; its expected value has been corrected to 1.0 because the toy scores rank every positive above every negative. Re-run the test suite after pulling the fix.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -244,7 +244,18 @@ python -m pytest tests/test_official_evaluation.py -q
 python -m pytest -q
 ```
 
-**Current verification status:** the implementation and tests have been committed to GitHub, but the full dataset evaluation and local test run are pending the author's execution. Do not insert guessed or example numbers as official test results. R2L and U2R remain important limitations because of low/shifted support, and the official test distribution differs substantially from training.
+**Local evaluation results (official `KDDTest+`, 22,544 rows):** the author ran the full-data evaluation successfully. The first test run exposed one incorrect expectation in the unit test for ROC-AUC, not an error in the evaluation code. The expected value is corrected in the latest commit; the full test suite must be rerun after pulling that fix.
+
+| Task | Model | Accuracy | Macro precision | Macro recall | Macro F1 | Weighted F1 | ROC-AUC |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Binary | Random Forest | 0.781139 | 0.818933 | 0.804454 | 0.780427 | 0.778695 | 0.957480 |
+| Binary | Decision Tree | 0.793958 | 0.821881 | 0.814249 | 0.793723 | 0.792759 | 0.814087 |
+| Five-class | Random Forest | 0.762110 | 0.731962 | 0.524459 | 0.514196 | 0.713959 | N/A |
+| Five-class | Decision Tree | 0.750044 | 0.665830 | 0.518583 | 0.517832 | 0.709837 | N/A |
+
+**Interpretation:** the Decision Tree narrowly leads the binary task on accuracy and macro F1, while Random Forest has substantially higher binary ROC-AUC, meaning its Attack scores rank examples well even though its default class threshold yields lower Attack recall. For five-class classification, both models struggle badly with R2L: Random Forest recall is 0.01 and Decision Tree recall is 0.05 on 2,885 R2L test records. The five-class Random Forest macro F1 (0.514) is much lower than its weighted F1 (0.714), showing that aggregate performance is much stronger on common classes than across all five classes equally.
+
+The official test split has 2,885 R2L records compared with 995 in training. This distribution shift is a major limitation and likely contributes to poor R2L generalization. U2R test support is only 67, so its per-class scores are also unstable. These results are the held-out evaluation of the locked Step 8 configurations. **Do not tune hyperparameters against these test results**; further changes must be selected using training-only cross-validation or a separate validation split, with the official test retained as the final benchmark.
 
 ## Results
 Internal validation and cross-validation results are available for model selection. Official held-out test results should be taken only from the author's run of `reports/official_evaluation/official_evaluation_summary.csv`; they are not hard-coded into this README.
