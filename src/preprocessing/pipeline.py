@@ -85,16 +85,35 @@ def build_preprocessor() -> ColumnTransformer:
     )
 
 
-def build_model_pipeline(estimator: Any) -> Pipeline:
+def build_model_pipeline(
+    estimator: Any,
+    *,
+    balance_classes: bool = False,
+) -> Pipeline:
     """Clone an estimator and combine it with the unfitted preprocessor.
 
-    Fit this entire pipeline on the training split only. Since the scaler and
-    encoder live inside the pipeline, cross-validation can refit them within
-    each fold rather than leaking statistics across folds.
+    If requested, set class_weight='balanced' for estimators that support it.
+    Scikit-learn derives weights from labels passed to each fit call, so fitting
+    this pipeline on training folds avoids using test labels. Estimators without
+    a class_weight parameter must use balance_classes=False and be handled
+    explicitly during model selection.
+
+    Since the scaler and encoder live inside the pipeline, cross-validation can
+    refit them within each fold rather than leaking statistics across folds.
     """
+    model = clone(estimator)
+    if balance_classes:
+        parameters = model.get_params(deep=False)
+        if "class_weight" not in parameters:
+            raise ValueError(
+                f"{model.__class__.__name__} does not support class_weight. "
+                "Use balance_classes=False for this estimator."
+            )
+        model.set_params(class_weight="balanced")
+
     return Pipeline(
         steps=[
             ("preprocessor", build_preprocessor()),
-            ("model", clone(estimator)),
+            ("model", model),
         ]
     )
