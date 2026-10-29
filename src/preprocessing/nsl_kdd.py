@@ -7,8 +7,6 @@ steps; this module only validates the raw schema and maps target labels.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
-
 import pandas as pd
 
 # NSL-KDD contains 41 connection features, an attack label, and a difficulty
