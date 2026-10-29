@@ -339,7 +339,7 @@ Accuracy will not be reported alone. The final analysis will discuss class imbal
 Screenshots will be added only after the interface is implemented and run.
 
 ## Setup and run
-**Current status:** the scaffold is not yet runnable as a complete application. The entry point and one-command startup instructions will be added with the backend implementation.
+**Current status:** the training and inference modules can be run independently, but the complete FastAPI application and browser dashboard are not implemented yet.
 
 Recommended environment: Python 3.10 or newer.
 
@@ -378,12 +378,17 @@ SentriNet/
 ├── reports/              # generated reports; large artifacts excluded
 ├── src/
 │   ├── preprocessing/
+│   │   ├── nsl_kdd.py
+│   │   └── pipeline.py
+│   ├── inference/
+│   │   └── predict.py
 │   ├── feature_selection.py
-│   ├── training/
-│   │   ├── binary_baselines.py
-│   │   └── multiclass_baselines.py
-│   ├── evaluation/
-│   └── utils/
+│   └── training/
+│       ├── binary_baselines.py
+│       ├── multiclass_baselines.py
+│       ├── cv_tuning.py
+│       ├── official_evaluation.py
+│       └── save_models.py
 ├── tests/
 ├── .gitignore
 ├── requirements.txt
