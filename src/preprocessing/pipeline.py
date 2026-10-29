@@ -26,8 +26,6 @@ NUMERIC_FEATURES = [
     column for column in MODEL_FEATURE_COLUMNS
     if column not in CATEGORICAL_FEATURES
 ]
-TARGET_COLUMNS = {"attack", "difficulty", "binary_label", "class_label"}
-
 
 def select_features_and_target(
     frame: pd.DataFrame,
