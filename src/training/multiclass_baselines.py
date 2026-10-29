@@ -62,7 +62,7 @@ def create_multiclass_models() -> dict[str, ClassifierMixin]:
         ),
         "K-Nearest Neighbors": KNeighborsClassifier(n_neighbors=5, n_jobs=-1),
         "Linear SVM": LinearSVC(
-            class_weight="balanced", random_state=RANDOM_STATE, max_iter=5000, dual=False
+            class_weight="balanced", random_state=RANDOM_STATE, max_iter=5000, dual=False, tol=1e-3
         ),
     }
 
