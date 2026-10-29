@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 1 of 16.** This repository currently contains the project scaffold only. The NSL-KDD dataset has not yet been loaded, no models have been trained, and no metrics are available. Results will be added only after they have been produced by running the project.
+> **Project status: Step 2 of 16 (blocked: dataset needed locally).** The repository scaffold is committed. Dataset loading and label mapping have not started because the required NSL-KDD files could not be downloaded into this execution environment. No models have been trained and no metrics are available. We will not fabricate or synthesize data.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -12,11 +12,11 @@ Network intrusion detection systems help identify traffic patterns associated wi
 ## Dataset
 **Primary dataset:** NSL-KDD, using the official `KDDTrain+` and `KDDTest+` split. We will not randomly re-split the official test set.
 
-Expected files (to be acquired before Step 2):
-- `data/raw/KDDTrain+.txt`
-- `data/raw/KDDTest+.txt`
+Required files (download these before resuming Step 2):
+- `KDDTrain+.txt` (full official training split)
+- `KDDTest+.txt` (full official test split)
 
-Dataset source and exact download instructions will be documented in Step 2. Raw data is intentionally excluded from version control. No dataset or synthetic substitute is bundled in this scaffold.
+Put both files in `data/raw/`, so the final paths are `data/raw/KDDTrain+.txt` and `data/raw/KDDTest+.txt`. Use the full `KDDTrain+` and `KDDTest+` files, not the 20% subset or `KDDTest-21` subset. The University of New Brunswick's dataset page notes that its original dataset is no longer available, so use the public mirror at [jmnwong/NSL-KDD-Dataset](https://github.com/jmnwong/NSL-KDD-Dataset). Download the files directly from [KDDTrain+.txt](https://github.com/jmnwong/NSL-KDD-Dataset/blob/master/KDDTrain%2B.txt) and [KDDTest+.txt](https://github.com/jmnwong/NSL-KDD-Dataset/blob/master/KDDTest%2B.txt), using each file's **Download raw file** option. Raw data is intentionally excluded from version control. No dataset or synthetic substitute is bundled.
 
 ## Approach / planned pipeline
 1. Inspect data shape, types, missing values, duplicates and labels.
@@ -119,4 +119,5 @@ The dependency list is an initial scaffold and will be validated as the modules 
 Repository: https://github.com/BethalaRinosh/SentriNet
 
 ## Development log
-- **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton. Dataset loading and experimentation are pending.
+- **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton.
+- **Step 2 (blocked):** Confirmed the required full NSL-KDD files and documented a public mirror. Dataset loading and label mapping are waiting for the files to be placed in `data/raw/`; no data was fabricated.
