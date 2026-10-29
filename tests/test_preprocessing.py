@@ -47,6 +47,6 @@ def test_only_supported_estimators_receive_balanced_class_weights():
 def test_preprocessor_is_unfitted_and_handles_unseen_categories():
     preprocessor = build_preprocessor()
     assert not hasattr(preprocessor, "transformers_")
-    categorical_pipeline = dict(preprocessor.transformers)["categorical"]
+    categorical_pipeline = {name: transformer for name, transformer, _ in preprocessor.transformers}["categorical"]
     encoder = categorical_pipeline.named_steps["onehot"]
     assert encoder.handle_unknown == "ignore"
