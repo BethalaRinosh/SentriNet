@@ -182,6 +182,7 @@ SentriNet/
 ├── reports/              # generated reports; large artifacts excluded
 ├── src/
 │   ├── preprocessing/
+│   ├── feature_selection.py
 │   ├── training/
 │   ├── evaluation/
 │   └── utils/
