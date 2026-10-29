@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 2 of 16 (blocked: dataset needed locally).** The repository scaffold is committed. Dataset loading and label mapping have not started because the required NSL-KDD files could not be downloaded into this execution environment. No models have been trained and no metrics are available. We will not fabricate or synthesize data.
+> **Project status: Step 2 of 16 (loader implemented; local validation pending).** The user confirmed that both full NSL-KDD files exist locally and are excluded by `.gitignore`. A schema-validating loader and label mapping have been added, but the files cannot be read from this remote coding session. Run the validation command below on the machine containing the dataset before treating this step as verified. No models have been trained and no metrics are available.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -64,7 +64,14 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Dataset acquisition, notebook execution, training, API startup, and UI instructions will be documented in the relevant implementation steps. Do not attempt to train until the official NSL-KDD files are present.
+After placing the two official files in `data/raw/`, run the Step 2 validation from the repository root:
+
+```bash
+python -m pip install -r requirements.txt
+python -m src.inspect_dataset
+```
+
+This reports shapes, dtypes, missing values, duplicate rows, binary/five-class distributions, and raw attack-label counts for both official splits. It does not train a model. Dataset acquisition, notebook execution, training, API startup, and UI instructions will be documented in the relevant implementation steps.
 
 ## Planned folder structure
 ```text
@@ -120,4 +127,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 
 ## Development log
 - **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton.
-- **Step 2 (blocked):** Confirmed the required full NSL-KDD files and documented a public mirror. Dataset loading and label mapping are waiting for the files to be placed in `data/raw/`; no data was fabricated.
+- **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. User confirmed both local files are non-empty and ignored by Git. Actual file-content validation remains pending because the local files are not accessible to the remote coding session.
