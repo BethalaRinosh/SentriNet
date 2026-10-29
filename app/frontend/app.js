@@ -1,0 +1,259 @@
+(() => {
+  "use strict";
+  const API_BASE = "http://127.0.0.1:8000";
+  const categorical = {
+    protocol_type: ["tcp", "udp", "icmp"],
+    service: ["http", "private", "domain_u", "smtp", "ftp_data", "other", "eco_i", "ecr_i", "telnet", "ftp", "finger", "pop_3", "auth", "imap", "ssh", "ntp_u", "uucp", "remote_job", "time", "domain", "name", "whois", "gopher", "rje", "link", "login", "printer", "shell", "sql_net", "bgp", "courier", "csnet_ns", "ctf", "daytime", "discard", "echo", "exec", "hostnames", "http_443", "kshell", "netbios_dgm", "netbios_ns", "netbios_ssn", "netstat", "nnsp", "nntp", "pm_dump", "red_i", "sunrpc", "supdup", "systat", "uucp_path", "vmnet", "Z39_50"],
+    flag: ["SF", "S0", "REJ", "RSTR", "RSTO", "S1", "S2", "S3", "SH", "OTH"]
+  };
+  const groups = [
+    {title:"Connection basics", subtitle:"01", fields:["duration","protocol_type","service","flag","src_bytes","dst_bytes","land","wrong_fragment","urgent"]},
+    {title:"Content and authentication", subtitle:"02", fields:["hot","num_failed_logins","logged_in","num_compromised","root_shell","su_attempted","num_root","num_file_creations","num_shells","num_access_files","is_host_login","is_guest_login"]},
+    {title:"Connection statistics", subtitle:"03", fields:["count","srv_count","serror_rate","srv_serror_rate","rerror_rate","srv_rerror_rate","same_srv_rate","diff_srv_rate","srv_diff_host_rate"]},
+    {title:"Destination host statistics", subtitle:"04", fields:["dst_host_count","dst_host_srv_count","dst_host_same_srv_rate","dst_host_diff_srv_rate","dst_host_same_src_port_rate","dst_host_srv_diff_host_rate","dst_host_serror_rate","dst_host_srv_serror_rate","dst_host_rerror_rate","dst_host_srv_rerror_rate"]}
+  ];
+  const excluded = new Set(["num_outbound_cmds"]);
+  const allFields = groups.flatMap(group => group.fields).filter(name => !excluded.has(name));
+  const formContainer = document.getElementById("feature-groups");
+  const form = document.getElementById("connection-form");
+  const submitButton = document.getElementById("analyze-button");
+  const modeButtons = [...document.querySelectorAll(".mode-button")];
+  let mode = "binary";
+  let apiOnline = false;
+
+  function prettyName(name) {
+    return name.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  function renderForm() {
+    formContainer.innerHTML = "";
+    groups.forEach(group => {
+      const section = document.createElement("section");
+      section.className = "feature-group";
+      const title = document.createElement("h3");
+      title.className = "group-title";
+      title.innerHTML = '<span class="group-number">' + group.subtitle + '</span>' + group.title;
+      const fields = document.createElement("div");
+      fields.className = "group-fields";
+      group.fields.filter(name => !excluded.has(name)).forEach(name => {
+        const wrap = document.createElement("div");
+        wrap.className = "field";
+        const id = "feature-" + name;
+        const label = document.createElement("label");
+        label.htmlFor = id;
+        const labelText = document.createElement("span");
+        labelText.textContent = prettyName(name);
+        const code = document.createElement("code");
+        code.textContent = name;
+        label.append(labelText, code);
+        let input;
+        if (categorical[name]) {
+          input = document.createElement("select");
+          categorical[name].forEach(value => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value;
+            input.append(option);
+          });
+        } else {
+          input = document.createElement("input");
+          input.type = "number";
+          input.step = ["serror_rate","srv_serror_rate","rerror_rate","srv_rerror_rate","same_srv_rate","diff_srv_rate","srv_diff_host_rate","dst_host_same_srv_rate","dst_host_diff_srv_rate","dst_host_same_src_port_rate","dst_host_srv_diff_host_rate","dst_host_serror_rate","dst_host_srv_serror_rate","dst_host_rerror_rate","dst_host_srv_rerror_rate"].includes(name) ? "0.01" : "1";
+          input.min = "0";
+          input.value = "0";
+        }
+        input.id = id;
+        input.name = name;
+        input.required = true;
+        input.setAttribute("aria-label", prettyName(name));
+        wrap.append(label, input);
+        fields.append(wrap);
+      });
+      section.append(title, fields);
+      formContainer.append(section);
+    });
+    document.querySelector(".feature-count").innerHTML = allFields.length + ' <span>FEATURES</span>';
+  }
+
+  function collectRecord() {
+    const record = {};
+    for (const name of allFields) {
+      const input = form.elements.namedItem(name);
+      if (!input) throw new Error("Missing form control for feature: " + name);
+      if (categorical[name]) {
+        record[name] = input.value;
+      } else {
+        const value = input.value.trim();
+        if (value === "" || !Number.isFinite(Number(value))) {
+          input.classList.add("invalid");
+          input.focus();
+          throw new Error("Enter a valid number for " + prettyName(name) + ".");
+        }
+        input.classList.remove("invalid");
+        record[name] = Number(value);
+      }
+    }
+    return record;
+  }
+
+  function setApiStatus(online, modelsReady, modelsPresent) {
+    apiOnline = online;
+    ["api-dot", "sidebar-dot"].forEach(id => {
+      const dot = document.getElementById(id);
+      dot.classList.toggle("online", online && modelsReady);
+      dot.classList.toggle("offline", !online || (online && !modelsReady));
+    });
+    document.getElementById("sidebar-api-text").textContent = !online ? "Backend unavailable" : modelsReady ? "Connected · models ready" : "Connected · models missing";
+    document.getElementById("api-status-title").textContent = !online ? "API unavailable" : modelsReady ? "Backend connected · models ready" : "Backend connected · models not found";
+    document.getElementById("api-status-detail").textContent = !online
+      ? "Start Uvicorn in your project terminal to enable predictions."
+      : modelsReady
+        ? "Both saved model artifacts are present and ready for inference."
+        : "The API is running, but generate model artifacts before predicting.";
+    if (online && modelsPresent) {
+      const missing = Object.entries(modelsPresent).filter(([,present]) => !present).map(([task]) => task);
+      document.getElementById("api-status-detail").textContent = modelsReady
+        ? "Both saved model artifacts are present and ready for inference."
+        : "Missing model(s): " + missing.join(", ") + ". Run python -m src.training.save_models.";
+    }
+    submitButton.disabled = !online;
+  }
+
+  async function refreshHealth() {
+    const title = document.getElementById("api-status-title");
+    title.textContent = "Checking API…";
+    try {
+      const response = await fetch(API_BASE + "/health", {method:"GET"});
+      if (!response.ok) throw new Error("Health check returned HTTP " + response.status);
+      const data = await response.json();
+      setApiStatus(true, Boolean(data.models_ready), data.models_present || {});
+    } catch (error) {
+      setApiStatus(false, false, null);
+    }
+  }
+
+  function showError(message) {
+    document.getElementById("result-content").classList.add("hidden");
+    document.getElementById("empty-result").classList.add("hidden");
+    const box = document.getElementById("result-error");
+    box.textContent = message;
+    box.classList.remove("hidden");
+  }
+
+  function showResult(result) {
+    const prediction = result.prediction;
+    const isAttack = prediction === "Attack" || ["DoS","Probe","R2L","U2R"].includes(prediction);
+    document.getElementById("empty-result").classList.add("hidden");
+    document.getElementById("result-error").classList.add("hidden");
+    document.getElementById("result-content").classList.remove("hidden");
+    document.getElementById("result-label").textContent = isAttack ? "THREAT CLASSIFICATION" : "CONNECTION CLASSIFICATION";
+    document.getElementById("result-label").style.color = isAttack ? "var(--red)" : "var(--mint)";
+    document.getElementById("result-title").textContent = prediction;
+    document.getElementById("result-title").style.color = isAttack ? "var(--red)" : "var(--mint)";
+    document.getElementById("result-badge").textContent = mode === "binary" ? "BINARY" : "FIVE CLASS";
+    document.getElementById("result-description").textContent = isAttack
+      ? "The model classified this record as " + prediction + ". Review the connection in context; a model output alone is not proof of malicious activity."
+      : "The model classified this record as normal. This is a prediction, not a guarantee that the connection is safe.";
+    const confidence = Number.isFinite(result.confidence) ? result.confidence : null;
+    document.getElementById("confidence-value").textContent = confidence === null ? "N/A" : (confidence * 100).toFixed(1) + "%";
+    document.getElementById("confidence-bar").style.width = confidence === null ? "0%" : Math.max(0, Math.min(100, confidence * 100)) + "%";
+    const attackBlock = document.getElementById("attack-probability-block");
+    if (typeof result.attack_probability === "number") {
+      attackBlock.classList.remove("hidden");
+      document.getElementById("attack-probability").textContent = (result.attack_probability * 100).toFixed(1) + "%";
+    } else {
+      attackBlock.classList.add("hidden");
+    }
+    document.getElementById("result-time").textContent = "Response received";
+  }
+
+  modeButtons.forEach(button => button.addEventListener("click", () => {
+    mode = button.dataset.mode;
+    modeButtons.forEach(item => item.classList.toggle("selected", item === button));
+    document.getElementById("result-badge").textContent = mode === "binary" ? "BINARY" : "FIVE CLASS";
+  }));
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    let record;
+    try {
+      record = collectRecord();
+    } catch (error) {
+      showError(error.message);
+      return;
+    }
+    const originalText = submitButton.querySelector("span").textContent;
+    submitButton.disabled = true;
+    submitButton.querySelector("span").textContent = "Analyzing…";
+    document.getElementById("result-content").classList.add("hidden");
+    document.getElementById("result-error").classList.add("hidden");
+    document.getElementById("empty-result").classList.remove("hidden");
+    document.querySelector("#empty-result h3").textContent = "Analyzing connection";
+    document.querySelector("#empty-result p").textContent = "Sending the feature record to your local SentriNet API.";
+    try {
+      const endpoint = mode === "binary" ? "/predict/binary" : "/predict/multiclass";
+      const response = await fetch(API_BASE + endpoint, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({records:[record]})
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail = data.detail;
+        const message = typeof detail === "string" ? detail : detail?.message || JSON.stringify(detail) || "Request failed.";
+        throw new Error("API error (" + response.status + "): " + message);
+      }
+      if (!Array.isArray(data.predictions) || !data.predictions[0]) throw new Error("The API returned no prediction.");
+      showResult(data.predictions[0]);
+    } catch (error) {
+      showError(error.message.includes("Failed to fetch")
+        ? "Could not reach the API. Make sure Uvicorn is running at " + API_BASE + " and refresh the status."
+        : error.message);
+      document.querySelector("#empty-result h3").textContent = "Awaiting connection";
+      document.querySelector("#empty-result p").textContent = "Submit a record to see the model's prediction and confidence score.";
+    } finally {
+      submitButton.disabled = !apiOnline;
+      submitButton.querySelector("span").textContent = originalText;
+    }
+  });
+
+  document.getElementById("load-demo").addEventListener("click", () => {
+    const demo = {
+      duration:0, protocol_type:"tcp", service:"http", flag:"SF", src_bytes:181, dst_bytes:5450,
+      land:0, wrong_fragment:0, urgent:0, hot:0, num_failed_logins:0, logged_in:1,
+      num_compromised:0, root_shell:0, su_attempted:0, num_root:0, num_file_creations:0,
+      num_shells:0, num_access_files:0, is_host_login:0, is_guest_login:0, count:8, srv_count:8,
+      serror_rate:0, srv_serror_rate:0, rerror_rate:0, srv_rerror_rate:0, same_srv_rate:1,
+      diff_srv_rate:0, srv_diff_host_rate:0, dst_host_count:9, dst_host_srv_count:9,
+      dst_host_same_srv_rate:1, dst_host_diff_srv_rate:0, dst_host_same_src_port_rate:0.11,
+      dst_host_srv_diff_host_rate:0, dst_host_serror_rate:0, dst_host_srv_serror_rate:0,
+      dst_host_rerror_rate:0, dst_host_srv_rerror_rate:0
+    };
+    Object.entries(demo).forEach(([name,value]) => {
+      const input = form.elements.namedItem(name);
+      if (input) input.value = String(value);
+    });
+    document.getElementById("result-content").classList.add("hidden");
+    document.getElementById("result-error").classList.add("hidden");
+    document.getElementById("empty-result").classList.remove("hidden");
+    document.querySelector("#empty-result h3").textContent = "Illustrative record loaded";
+    document.querySelector("#empty-result p").textContent = "These hand-entered values are for interface demonstration, not a verified sample or a live network capture.";
+  });
+
+  document.getElementById("reset-form").addEventListener("click", () => {
+    form.reset();
+    form.querySelectorAll('input[type="number"]').forEach(input => {input.value="0";input.classList.remove("invalid");});
+    document.getElementById("result-content").classList.add("hidden");
+    document.getElementById("result-error").classList.add("hidden");
+    document.getElementById("empty-result").classList.remove("hidden");
+    document.querySelector("#empty-result h3").textContent = "Awaiting connection";
+    document.querySelector("#empty-result p").textContent = "Submit a record to see the model's prediction and confidence score.";
+  });
+  document.getElementById("refresh-health").addEventListener("click", refreshHealth);
+
+  renderForm();
+  if (allFields.length !== 40) {
+    showError("Frontend schema mismatch: expected 40 features but rendered " + allFields.length + ".");
+  }
+  refreshHealth();
+})();
