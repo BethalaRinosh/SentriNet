@@ -28,7 +28,7 @@ Put both files in `data/raw/`, so the final paths are `data/raw/KDDTrain+.txt` a
 7. Evaluate against the fixed official test set with class-aware metrics, confusion matrices, ROC-AUC where applicable, and measured runtime.
 8. Save the chosen fitted pipeline and serve predictions through a FastAPI backend with a plain HTML/CSS/JS interface.
 
-These are planned steps, not claims that the pipeline is implemented yet.
+Only steps explicitly marked as locally validated should be treated as verified; the remaining pipeline is planned and will be implemented incrementally.
 
 ## Dataset validation (Step 2)
 
