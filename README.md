@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 6 of 16 in progress.** Steps 1–5 are implemented and locally validated. Step 6 adds five binary-classification baselines using an internal stratified validation split from `KDDTrain+`; local verification is pending. The official `KDDTest+` remains reserved for final evaluation.
+> **Project status: Step 7 of 16 in progress.** Steps 1–6 are implemented and locally validated. Step 7 adds five-class baseline experiments for Normal, DoS, Probe, R2L, and U2R using an internal stratified validation split from `KDDTrain+`; local verification is pending. The official `KDDTest+` remains reserved for final evaluation.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -164,6 +164,27 @@ These results are from the internal validation subset of `KDDTrain+`, not the of
 
 **Interpretation:** Random Forest has the strongest macro F1 and ROC-AUC among these preliminary baselines. KNN fit quickly but had the slowest validation prediction time. These results are unusually strong and should be treated as internal validation evidence only: the random split comes from the same official training source and may not reflect the distribution shift in `KDDTest+`. We must not claim these are final generalization results. Later cross-validation/tuning and evaluation on the untouched official test split remain necessary.
 
+## Five-class baseline models (Step 7)
+
+The module `src/training/multiclass_baselines.py` compares five classical classifiers for `class_label`: **Normal, DoS, Probe, R2L, and U2R**. It reuses the existing preprocessing pipeline, so numeric scaling and categorical encoding are fitted on the internal training partition only.
+
+Run from the repository root:
+
+```bash
+python -m src.training.multiclass_baselines
+```
+
+By default, the script uses all rows from the official `KDDTrain+.txt` and creates an 80/20 stratified internal training/validation split. To use a reproducible sample for a faster exploratory run, pass `--sample-size 30000`. The official `KDDTest+.txt` is not loaded. Models that support class weights use them to help address class imbalance; K-Nearest Neighbors does not support the same `class_weight` option.
+
+Generated files go to `reports/baseline_multiclass/` (ignored by Git):
+- `multiclass_baseline_comparison.csv`: accuracy, macro precision/recall, macro and weighted F1, and fit/prediction time.
+- `multiclass_baseline_details.json`: confusion matrices and per-class classification reports for all five classes.
+- `multiclass_baseline_macro_f1.png`: model comparison chart.
+
+**Interpretation caution:** U2R has very few examples in the official training split, so its validation support is small and per-class metrics may be unstable. Macro F1 gives each class equal weight; weighted F1 reflects class support. Neither should be interpreted without the per-class report and confusion matrix. These are internal validation results, not official test results.
+
+**Validation status:** code and unit tests are committed; local execution of the full test suite and five-class experiment is pending.
+
 ## Results
 **No measured predictive results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
 
@@ -223,7 +244,8 @@ SentriNet/
 │   ├── preprocessing/
 │   ├── feature_selection.py
 │   ├── training/
-│   │   └── binary_baselines.py
+│   │   ├── binary_baselines.py
+│   │   └── multiclass_baselines.py
 │   ├── evaluation/
 │   └── utils/
 ├── tests/
@@ -249,7 +271,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Binary baseline code is implemented but still awaiting local execution; final model selection, final test metrics, and UI features are not complete.
+- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Binary baselines are locally validated; five-class baseline code is implemented but awaiting local execution. Final model selection, official test metrics, and UI features are not complete.
 
 ## Future work
 - Complete the leakage-safe binary and five-class ML experiments.
@@ -268,3 +290,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 4:** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional balanced class weights, and preprocessing unit tests. The author ran the tests locally: 4 passed.
 - **Step 5:** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. The author ran the script successfully and the full test suite passed (7 tests).
 - **Step 6:** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The author ran the full suite locally (10 passed) and completed the baseline experiment on a 30,000-row training sample. Random Forest led the internal validation comparison (macro F1 0.998158); the official `KDDTest+` was not loaded. Results are documented as preliminary, not final test performance.
+- **Step 7 (local verification pending):** Added five-class baseline models for Normal, DoS, Probe, R2L, and U2R, per-class reports, confusion matrices, overall class-aware metrics, and reproducible report outputs. The runner defaults to the full official `KDDTrain+` split and does not load `KDDTest+`.
