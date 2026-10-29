@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.inference.predict import ARTIFACTS, DEFAULT_ARTIFACT_DIR, predict_records
@@ -17,6 +18,21 @@ app = FastAPI(
         "This API does not capture live packets."
     ),
     version="0.1.0",
+)
+
+# Allow the separately served local frontend to call this API during development.
+# Restrict this to common local development origins rather than allowing every site.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 NUMERIC_FEATURES = [
