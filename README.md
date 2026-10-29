@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 3 of 16 in progress.** The official NSL-KDD loader has been validated locally, and the reproducible EDA script is committed. Run the EDA command below to generate the plots and confirm the output on your machine. No models have been trained and no predictive metrics are available.
+> **Project status: Step 3 of 16 complete.** The author ran `python -m src.eda` successfully on the real official NSL-KDD files. All five plots were generated locally, and the script reported the train/test class-proportion gap. No models have been trained and no predictive metrics are available.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -70,7 +70,7 @@ The generated reports are ignored by Git; the script is the reproducible source 
 
 **Observations supported by the Step 2 dataset inspection:** the training split has 995 R2L and 52 U2R records, while the official test split has 2,885 R2L and 67 U2R records. R2L's proportion is much larger in the test split, so the official test distribution is not interchangeable with the training distribution. U2R has low support in both splits. The class-proportion plot is intended to make this gap easier to see; macro F1 and per-class recall will be important later. These are properties of the dataset, not evidence of model performance.
 
-**Validation status:** the EDA script has been added, but its execution on the author's local dataset is still pending. Do not treat the plots as generated until `python -m src.eda` completes successfully.
+**Validation status:** confirmed locally. The EDA command completed and saved all five expected figures under `reports/eda/`. The observed test-minus-train class-proportion differences were R2L +12.01 percentage points, Normal -10.38 pp, DoS -3.37 pp, Probe +1.49 pp, and U2R +0.26 pp. These are descriptive dataset differences, not model metrics.
 
 ## Results
 **No measured results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
@@ -170,4 +170,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 ## Development log
 - **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton.
 - **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. The author ran the command locally: train = 125,973 rows, test = 22,544 rows; both had zero reported missing values and duplicate rows, and all labels mapped successfully.
-- **Step 3 (implementation pending local run):** Added `src/eda.py` to print split-aware descriptive summaries and generate five plots from the real NSL-KDD files. No model training or test-set fitting occurs.
+- **Step 3:** Added and locally ran `src/eda.py`; all five figures were generated from the official files. The largest class proportion differences (test minus train) were R2L +12.01 pp and Normal -10.38 pp. No model training or test-set fitting occurred.
