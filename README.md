@@ -30,6 +30,24 @@ Put both files in `data/raw/`, so the final paths are `data/raw/KDDTrain+.txt` a
 
 These are planned steps, not claims that the pipeline is implemented yet.
 
+## Dataset validation (Step 2)
+
+The loader was run locally by the project author against the official NSL-KDD files. The captured terminal output reported:
+
+| Split | Rows | Columns after target mapping | Missing values | Duplicate rows |
+|---|---:|---:|---:|---:|
+| KDDTrain+ | 125,973 | 45 | 0 | 0 |
+| KDDTest+ | 22,544 | 45 | 0 | 0 |
+
+The 45 columns are 41 connection features, the normalized raw attack label, difficulty metadata, and two derived targets (`binary_label` and `class_label`). Difficulty is retained for inspection but must not be used as a model input.
+
+| Split | Normal | DoS | Probe | R2L | U2R |
+|---|---:|---:|---:|---:|---:|
+| Train | 67,343 | 45,927 | 11,656 | 995 | 52 |
+| Test | 9,711 | 7,460 | 2,421 | 2,885 | 67 |
+
+**Interpretation:** the five-class distribution changes substantially between the official splits, especially for R2L. U2R has very few records in both splits. This is a reason to report per-class recall and macro F1 rather than relying on accuracy alone. These are dataset counts, not model results.
+
 ## Results
 **No measured results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
 
@@ -64,7 +82,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-After placing the two official files in `data/raw/`, run the Step 2 validation from the repository root:
+With the two official files in `data/raw/`, validate the dataset from the repository root using:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -127,4 +145,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 
 ## Development log
 - **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton.
-- **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. User confirmed both local files are non-empty and ignored by Git. Actual file-content validation remains pending because the local files are not accessible to the remote coding session.
+- **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. The author ran the command locally: train = 125,973 rows, test = 22,544 rows; both had zero reported missing values and duplicate rows, and all labels mapped successfully.
