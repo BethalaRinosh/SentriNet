@@ -183,15 +183,17 @@ Generated files go to `reports/baseline_multiclass/` (ignored by Git):
 
 **Interpretation caution:** U2R has very few examples in the official training split, so its validation support is small and per-class metrics may be unstable. Macro F1 gives each class equal weight; weighted F1 reflects class support. Neither should be interpreted without the per-class report and confusion matrix. These are internal validation results, not official test results.
 
-**Validation status:** code and unit tests are committed; local execution of the full test suite and five-class experiment is pending.
+**Initial local run (before the solver adjustment below):** the full-data experiment completed on 125,973 rows, with 100,778 training and 25,195 validation records. Random Forest led macro F1 at 0.936115 (accuracy 0.998730, weighted F1 0.998709); Decision Tree reached macro F1 0.930726. U2R validation support was only 10 records, so its reported scores are highly unstable. The 30,000-row exploratory sample produced Random Forest macro F1 0.884361, with only three U2R validation records. These are internal validation results, not official test metrics.
+
+The pasted test run had one failing assertion because the toy metric example has exactly one true record per class, making macro and weighted F1 equal. The test has been corrected to assert that expected equality. The same run reported a Linear SVM convergence warning, so the multiclass SVM now uses `dual=False`, which is appropriate for this dataset's many-samples/fewer-transformed-features setup. **Rerun the tests and experiment to verify these fixes before treating Step 7 as complete.**
 
 ## Results
-**No measured predictive results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
+Internal validation baselines have been measured for binary and five-class tasks. These are not final results: the official `KDDTest+` has not been used for model evaluation, and Step 7's test/SVM fix still needs a local rerun.
 
 | Task | Model | Accuracy | Macro F1 | Weighted F1 | Status |
 |---|---|---:|---:|---:|---|
-| Binary | Not trained | N/A | N/A | N/A | Pending dataset and experiments |
-| Five-class | Not trained | N/A | N/A | N/A | Pending dataset and experiments |
+| Binary | Random Forest | 0.998167 | 0.998158 | 0.998166 | Internal validation only |
+| Five-class | Random Forest | 0.998730 | 0.936115 | 0.998709 | Internal validation only; rerun pending |
 
 Accuracy will not be reported alone. The final analysis will discuss class imbalance, rare R2L/U2R examples, and the distribution difference between NSL-KDD's official train and test sets.
 
@@ -271,7 +273,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Binary baselines are locally validated; five-class baseline code is implemented but awaiting local execution. Final model selection, official test metrics, and UI features are not complete.
+- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Binary baselines are locally validated; five-class experiment results have been captured, but the corrected metric test and Linear SVM solver setting need local rerun. Final model selection, official test metrics, and UI features are not complete.
 
 ## Future work
 - Complete the leakage-safe binary and five-class ML experiments.
@@ -290,4 +292,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 4:** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional balanced class weights, and preprocessing unit tests. The author ran the tests locally: 4 passed.
 - **Step 5:** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. The author ran the script successfully and the full test suite passed (7 tests).
 - **Step 6:** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The author ran the full suite locally (10 passed) and completed the baseline experiment on a 30,000-row training sample. Random Forest led the internal validation comparison (macro F1 0.998158); the official `KDDTest+` was not loaded. Results are documented as preliminary, not final test performance.
-- **Step 7 (local verification pending):** Added five-class baseline models for Normal, DoS, Probe, R2L, and U2R, per-class reports, confusion matrices, overall class-aware metrics, and reproducible report outputs. The runner defaults to the full official `KDDTrain+` split and does not load `KDDTest+`.
+- **Step 7 (rerun pending):** Added five-class baseline models for Normal, DoS, Probe, R2L, and U2R, per-class reports, confusion matrices, overall class-aware metrics, and reproducible report outputs. The author ran full-data and 30,000-row experiments using `KDDTrain+` only. The test's equal-support F1 assertion was corrected, and the Linear SVM solver was adjusted after a convergence warning; rerun is needed to verify the fixes.
