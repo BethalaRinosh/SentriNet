@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 5 of 16 in progress.** Steps 1–3 are locally validated. Step 4's four preprocessing tests passed locally. Step 5 adds a reproducible, training-split-only Random Forest feature-importance analysis; local verification of its script and tests is pending. No final predictive metrics are available.
+> **Project status: Step 5 of 16 complete; awaiting checkpoint approval before Step 6.** Steps 1–3 are locally validated, all seven automated tests pass, and the Step 5 feature-importance script ran successfully on the official training split. No final predictive metrics are available.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -123,7 +123,11 @@ The script writes `reports/feature_importance/binary_label_feature_importance.cs
 
 **Interpretation caveat:** impurity-based importance is a useful exploratory ranking, not causal evidence, a held-out evaluation, or a guarantee that dropping a feature improves generalization. It can favor features with many possible split points. Final feature decisions should be checked against cross-validation and the untouched official test set during later steps.
 
-**Validation status:** implementation and tests are committed; the author still needs to run the feature-importance script and the complete test suite locally.
+**Validation status:** confirmed locally. The author ran the full test suite (`7 passed in 3.35s`) and `python -m src.feature_selection`; the CSV ranking and top-20 PNG were generated successfully.
+
+### Observed feature-importance output
+
+The locally run binary-target analysis ranked `src_bytes` (0.1373), `dst_bytes` (0.1126), `flag` (0.0914), and `service` (0.0699) as its top four features in the 30,000-row sample. These values are Random Forest impurity-importance scores aggregated to original feature names. They describe this exploratory fit only and are not final model metrics or causal claims.
 
 ## Results
 **No measured predictive results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
@@ -226,4 +230,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. The author ran the command locally: train = 125,973 rows, test = 22,544 rows; both had zero reported missing values and duplicate rows, and all labels mapped successfully.
 - **Step 3:** Added and locally ran `src/eda.py`; all five figures were generated from the official files. The largest class proportion differences (test minus train) were R2L +12.01 pp and Normal -10.38 pp. No model training or test-set fitting occurred.
 - **Step 4:** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional balanced class weights, and preprocessing unit tests. The author ran the tests locally: 4 passed.
-- **Step 5 (local verification pending):** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. Added tests for aggregation and mapping validation.
+- **Step 5:** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. The author ran the script successfully and the full test suite passed (7 tests).
