@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 2 of 16 complete.** The author ran the loader locally against the full NSL-KDD files. Both official splits loaded, all labels mapped, and the validation command completed successfully. No models have been trained and no predictive metrics are available.
+> **Project status: Step 3 of 16 in progress.** The official NSL-KDD loader has been validated locally, and the reproducible EDA script is committed. Run the EDA command below to generate the plots and confirm the output on your machine. No models have been trained and no predictive metrics are available.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -47,6 +47,30 @@ The 45 columns are 41 connection features, the normalized raw attack label, diff
 | Test | 9,711 | 7,460 | 2,421 | 2,885 | 67 |
 
 **Interpretation:** the five-class distribution changes substantially between the official splits, especially for R2L. U2R has very few records in both splits. This is a reason to report per-class recall and macro F1 rather than relying on accuracy alone. These are dataset counts, not model results.
+
+## Exploratory data analysis (Step 3)
+
+The script `src/eda.py` performs descriptive analysis on the **real official train and test files**. It does not synthesize records, fit preprocessing, rebalance the test set, or train a model.
+
+Run from the repository root after Step 2's dataset files and dependencies are in place:
+
+```bash
+python -m src.eda
+```
+
+It prints class counts and percentages for both splits, protocol-type counts, and the largest train/test class-proportion differences. It also writes these five plots to `reports/eda/`:
+
+- `class_counts_by_split.png`: raw five-class record counts.
+- `class_proportions_by_split.png`: split-normalized percentages.
+- `binary_counts_by_split.png`: Normal vs Attack counts.
+- `protocol_counts_by_split.png`: protocol-type counts.
+- `numeric_feature_distributions.png`: duration, source bytes, and destination bytes on a `log(1 + x)` scale.
+
+The generated reports are ignored by Git; the script is the reproducible source of the figures. This avoids committing machine-generated plot files while keeping the raw dataset out of version control.
+
+**Observations supported by the Step 2 dataset inspection:** the training split has 995 R2L and 52 U2R records, while the official test split has 2,885 R2L and 67 U2R records. R2L's proportion is much larger in the test split, so the official test distribution is not interchangeable with the training distribution. U2R has low support in both splits. The class-proportion plot is intended to make this gap easier to see; macro F1 and per-class recall will be important later. These are properties of the dataset, not evidence of model performance.
+
+**Validation status:** the EDA script has been added, but its execution on the author's local dataset is still pending. Do not treat the plots as generated until `python -m src.eda` completes successfully.
 
 ## Results
 **No measured results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
@@ -146,3 +170,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 ## Development log
 - **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton.
 - **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. The author ran the command locally: train = 125,973 rows, test = 22,544 rows; both had zero reported missing values and duplicate rows, and all labels mapped successfully.
+- **Step 3 (implementation pending local run):** Added `src/eda.py` to print split-aware descriptive summaries and generate five plots from the real NSL-KDD files. No model training or test-set fitting occurs.
