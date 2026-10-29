@@ -47,7 +47,7 @@ def create_tuning_candidates(
         "Random Forest": (
             RandomForestClassifier(
                 n_estimators=100,
-                random_state=RANDOM_STATE,
+                random_state=random_state,
                 n_jobs=-1,
                 class_weight="balanced_subsample",
             ),
@@ -137,7 +137,9 @@ def run_cv_tuning(
             "models": {},
         }
 
-        for model_name, (estimator, parameter_space) in create_tuning_candidates(\n            target, random_state=random_state\n        ).items():
+        for model_name, (estimator, parameter_space) in create_tuning_candidates(
+            target, random_state=random_state
+        ).items():
             pipeline = build_model_pipeline(estimator)
             search = RandomizedSearchCV(
                 estimator=pipeline,
