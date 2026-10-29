@@ -272,7 +272,7 @@ The command loads only `KDDTrain+`, refits each selected pipeline on all 125,973
 
 - `sentrinet_binary.joblib`: fitted preprocessing and binary Random Forest.
 - `sentrinet_multiclass.joblib`: fitted preprocessing and five-class Random Forest.
-- `metadata.json`: task, model parameters, feature order, label order, scikit-learn version, training-row count, and the training-only CV selection rationale.
+- `metadata.json`: task, model parameters, feature order, label order, Python/scikit-learn/joblib versions, training-row count, SHA-256 of the exact training file, and the training-only CV selection rationale.
 
 The `models/` artifacts are ignored by Git and must be generated locally. Raw data and model binaries are not committed. Keep the generated metadata alongside the corresponding artifacts; joblib files should only be loaded from trusted sources.
 
