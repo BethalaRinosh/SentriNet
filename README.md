@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 5 of 16 complete; awaiting checkpoint approval before Step 6.** Steps 1–3 are locally validated, all seven automated tests pass, and the Step 5 feature-importance script ran successfully on the official training split. No final predictive metrics are available.
+> **Project status: Step 6 of 16 in progress.** Steps 1–5 are implemented and locally validated. Step 6 adds five binary-classification baselines using an internal stratified validation split from `KDDTrain+`; local verification is pending. The official `KDDTest+` remains reserved for final evaluation.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -129,6 +129,27 @@ The script writes `reports/feature_importance/binary_label_feature_importance.cs
 
 The locally run binary-target analysis ranked `src_bytes` (0.1373), `dst_bytes` (0.1126), `flag` (0.0914), and `service` (0.0699) as its top four features in the 30,000-row sample. These values are Random Forest impurity-importance scores aggregated to original feature names. They describe this exploratory fit only and are not final model metrics or causal claims.
 
+## Binary baseline models (Step 6)
+
+The module `src/training/binary_baselines.py` compares five classical classifiers for **Normal vs Attack**: Logistic Regression, Decision Tree, Random Forest, K-Nearest Neighbors, and Linear SVM.
+
+Run from the repository root:
+
+```bash
+python -m src.training.binary_baselines
+```
+
+By default, the script samples 30,000 records reproducibly from the official `KDDTrain+.txt`, then makes an 80/20 stratified training/validation split. Each model's preprocessing is fitted only on its training subset. **It does not load `KDDTest+.txt`**; that official split remains reserved for final held-out evaluation in a later step. The sample is for practical baseline runtime, not a replacement dataset.
+
+Generated outputs go to `reports/baseline_binary/` (ignored by Git):
+- `binary_baseline_comparison.csv`: accuracy, macro precision/recall, macro and weighted F1, ROC-AUC where a continuous score is available, and fit/prediction times.
+- `binary_baseline_details.json`: per-model confusion matrices and classification reports.
+- `binary_baseline_macro_f1.png`: comparison chart sorted by macro F1.
+
+Use `--sample-size` to change the reproducible sample size and `--validation-size` to change the held-out fraction from the sampled training records. The validation subset is not the official test set. These results are preliminary model-selection evidence; Step 8 will use stratified cross-validation and tuning, and the official test set will be used only during the final evaluation step.
+
+**Validation status:** implementation and unit tests are committed; local execution of the full test suite and baseline experiment is pending.
+
 ## Results
 **No measured predictive results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
 
@@ -188,6 +209,7 @@ SentriNet/
 │   ├── preprocessing/
 │   ├── feature_selection.py
 │   ├── training/
+│   │   └── binary_baselines.py
 │   ├── evaluation/
 │   └── utils/
 ├── tests/
@@ -231,3 +253,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 3:** Added and locally ran `src/eda.py`; all five figures were generated from the official files. The largest class proportion differences (test minus train) were R2L +12.01 pp and Normal -10.38 pp. No model training or test-set fitting occurred.
 - **Step 4:** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional balanced class weights, and preprocessing unit tests. The author ran the tests locally: 4 passed.
 - **Step 5:** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. The author ran the script successfully and the full test suite passed (7 tests).
+- **Step 6 (local verification pending):** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The official `KDDTest+` is not loaded by the baseline runner.
