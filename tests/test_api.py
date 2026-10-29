@@ -100,3 +100,16 @@ def test_missing_model_artifact_returns_actionable_503(monkeypatch):
     response = client.post("/predict/binary", json={"records": [feature_record()]})
     assert response.status_code == 503
     assert "python -m src.training.save_models" in response.json()["detail"]
+
+
+def test_local_frontend_cors_preflight_is_allowed():
+    response = client.options(
+        "/health",
+        headers={
+            "Origin": "http://127.0.0.1:5500",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:5500"
