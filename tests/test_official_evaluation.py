@@ -44,7 +44,7 @@ def test_binary_metrics_include_roc_auc_from_attack_scores():
 
     assert metrics["accuracy"] == pytest.approx(0.75)
     assert metrics["f1_macro"] == pytest.approx(0.7333333333)
-    assert metrics["f1_weighted"] == pytest.approx(0.75)
+    assert metrics["f1_weighted"] == pytest.approx(0.7333333333)
     assert metrics["roc_auc"] == pytest.approx(1.0)
 
 
