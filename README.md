@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Step 4 of 16 in progress.** Steps 1–3 are complete, including a successful local EDA run. The leakage-safe preprocessing pipeline and unit tests are committed; local test execution is pending. No models have been trained and no predictive metrics are available.
+> **Project status: Step 5 of 16 in progress.** Steps 1–3 are locally validated. Step 4's four preprocessing tests passed locally. Step 5 adds a reproducible, training-split-only Random Forest feature-importance analysis; local verification of its script and tests is pending. No final predictive metrics are available.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -22,7 +22,7 @@ Put both files in `data/raw/`, so the final paths are `data/raw/KDDTrain+.txt` a
 1. Inspect data shape, types, missing values, duplicates and labels.
 2. Explore label distributions and relevant feature patterns with plots.
 3. Preprocess categorical and numerical features inside a scikit-learn pipeline; fit transformations on training data only.
-4. Investigate feature importance/selection.
+4. Investigate feature importance/selection using only the official training split.
 5. Train at least five classical ML models for binary and five-class tasks.
 6. Use stratified cross-validation and tune the two leading candidates on training data.
 7. Evaluate against the fixed official test set with class-aware metrics, confusion matrices, ROC-AUC where applicable, and measured runtime.
@@ -105,10 +105,28 @@ Unit tests are in `tests/test_preprocessing.py`. Run them from the repository ro
 python -m pytest tests/test_preprocessing.py -q
 ```
 
-**Validation status:** implementation and tests are committed, but test execution on the author's local environment is still pending.
+**Validation status:** the author ran `python -m pytest tests/test_preprocessing.py -q`; all four tests passed.
+
+## Feature importance (Step 5)
+
+`src/feature_selection.py` ranks the 40 original input features using Random Forest impurity-based importance. It loads **only** `data/raw/KDDTrain+.txt`; the official `KDDTest+.txt` is not loaded or used. By default, it draws a reproducible 30,000-row sample from the official training split (`random_state=42`) to keep the exploratory run practical. The one-hot encoded importances for `protocol_type`, `service`, and `flag` are summed back to their original feature groups, so the output is interpretable at the dataset-column level.
+
+Run from the repository root:
+
+```bash
+python -m src.feature_selection
+# Optional: inspect feature importance for the five-class target instead
+python -m src.feature_selection --target class_label
+```
+
+The script writes `reports/feature_importance/binary_label_feature_importance.csv` and `reports/feature_importance/binary_label_top20_feature_importance.png` by default. These generated outputs are ignored by Git. Use `--sample-size` and `--n-estimators` to adjust runtime; both are reproducible with the fixed random state. Tests for aggregating one-hot importances are in `tests/test_feature_selection.py`.
+
+**Interpretation caveat:** impurity-based importance is a useful exploratory ranking, not causal evidence, a held-out evaluation, or a guarantee that dropping a feature improves generalization. It can favor features with many possible split points. Final feature decisions should be checked against cross-validation and the untouched official test set during later steps.
+
+**Validation status:** implementation and tests are committed; the author still needs to run the feature-importance script and the complete test suite locally.
 
 ## Results
-**No measured results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
+**No measured predictive results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
 
 | Task | Model | Accuracy | Macro F1 | Weighted F1 | Status |
 |---|---|---:|---:|---:|---|
@@ -190,7 +208,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Preprocessing is implemented, but has not yet been confirmed by a local test run. Models, predictive metrics, and UI features are not implemented yet.
+- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Models, predictive metrics, and UI features are not implemented yet.
 
 ## Future work
 - Complete the leakage-safe binary and five-class ML experiments.
@@ -206,4 +224,5 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 1:** Initial repository scaffold, dependency list, ignore rules and README skeleton.
 - **Step 2:** Added the schema-validating NSL-KDD loader, standard binary and five-class target mapping, and an inspection command. The author ran the command locally: train = 125,973 rows, test = 22,544 rows; both had zero reported missing values and duplicate rows, and all labels mapped successfully.
 - **Step 3:** Added and locally ran `src/eda.py`; all five figures were generated from the official files. The largest class proportion differences (test minus train) were R2L +12.01 pp and Normal -10.38 pp. No model training or test-set fitting occurred.
-- **Step 4 (local test run pending):** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional training-only balanced class weights, and preprocessing unit tests.
+- **Step 4:** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional balanced class weights, and preprocessing unit tests. The author ran the tests locally: 4 passed.
+- **Step 5 (local verification pending):** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. Added tests for aggregation and mapping validation.
