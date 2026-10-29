@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–8 complete and locally verified.** The full test suite passes (17 tests), and the full-data five-fold cross-validation/tuning run completed for both binary and five-class targets. The official `KDDTest+` remains reserved for final evaluation.
+> **Project status: Steps 1–8 are locally verified; Step 9 is implemented and ready for the author's local run.** Step 9 evaluates locked Step 8 candidates on the official `KDDTest+` split. Official-test metrics have not been claimed or recorded until the author runs the new evaluation script locally.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -217,8 +217,37 @@ Generated files are written to `reports/cv_tuning/` (ignored by Git):
 
 **Validation status:** verified locally. The author ran `python -m pytest -q` (17 passed in 2.52 seconds) and `python -m src.training.cv_tuning` on the full official training split. All four searches completed, all three report files were generated, and the command confirmed that `KDDTest+` was not loaded or scored.
 
+## Official test evaluation (Step 9)
+
+The module `src/training/official_evaluation.py` performs the final held-out evaluation for both binary (`Normal` vs `Attack`) and five-class (`Normal`, `DoS`, `Probe`, `R2L`, `U2R`) classification.
+
+Run from the repository root after placing the official files in `data/raw/`:
+
+```bash
+python -m src.training.official_evaluation
+```
+
+**Leakage boundary:** the script first loads only `KDDTrain+`, then fits the four locked pipelines on the full training split. Only after all fits are complete does it load `KDDTest+` and score each fitted pipeline. Hyperparameters are fixed to the Step 8 best settings and are not selected using test results. Do not retune based on the official test metrics.
+
+For each task, the script evaluates the tuned Random Forest and Decision Tree. It reports accuracy, macro and weighted precision/recall/F1, binary ROC-AUC from Attack probabilities, fit time, prediction time, throughput, fixed-label confusion matrices, and per-class classification reports. It also records train/test label counts, proportions, and test-minus-train percentage-point differences.
+
+Outputs are saved locally under `reports/official_evaluation/` (ignored by Git):
+- `official_evaluation_summary.csv`: one row per task/model with the aggregate metrics and timing.
+- `official_evaluation_details.json`: per-class reports, confusion matrices, class support, and train/test label-distribution comparison.
+- `official_evaluation_macro_f1.png`: macro-F1 comparison chart.
+- `confusion-*.png`: one confusion-matrix image per task/model.
+
+Tests for the locked parameters and metric calculations are in `tests/test_official_evaluation.py`. Run them with:
+
+```bash
+python -m pytest tests/test_official_evaluation.py -q
+python -m pytest -q
+```
+
+**Current verification status:** the implementation and tests have been committed to GitHub, but the full dataset evaluation and local test run are pending the author's execution. Do not insert guessed or example numbers as official test results. R2L and U2R remain important limitations because of low/shifted support, and the official test distribution differs substantially from training.
+
 ## Results
-Internal validation and cross-validation results have been measured for binary and five-class tasks. These are model-selection results, **not final held-out test results**: the official `KDDTest+` has not been used for model evaluation.
+Internal validation and cross-validation results are available for model selection. Official held-out test results should be taken only from the author's run of `reports/official_evaluation/official_evaluation_summary.csv`; they are not hard-coded into this README.
 
 ### Baseline validation results
 
@@ -316,7 +345,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based. Cross-validation and tuning are implemented in Step 8 but still require local verification; final evaluation on the official `KDDTest+` remains pending. Final model selection, official test metrics, model persistence, and UI features are not complete.
+- Feature importance is exploratory and impurity-based. Cross-validation/tuning (Step 8) has been locally verified. Step 9's official-test evaluation script is implemented, but its full local run is pending. Model persistence and UI features are not complete.
 
 ## Future work
 - Verify the cross-validation/tuning experiments, then complete final held-out evaluation on the official `KDDTest+`.
@@ -337,3 +366,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 6:** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The author ran the full suite locally (10 passed) and completed the baseline experiment on a 30,000-row training sample. Random Forest led the internal validation comparison (macro F1 0.998158); the official `KDDTest+` was not loaded. Results are documented as preliminary, not final test performance.
 - **Step 7:** Added five-class baseline models for Normal, DoS, Probe, R2L, and U2R, per-class reports, confusion matrices, overall class-aware metrics, and reproducible report outputs. The author ran the full experiment on `KDDTrain+` only with a stratified 100,778/25,195 training/validation split; the full test suite passed (13 tests). After configuring Linear SVM with `dual=False`, `max_iter=5000`, and `tol=1e-3`, the rerun completed without a convergence warning. Random Forest led by macro F1 (0.936115), followed by Decision Tree (0.930726). `KDDTest+` was not loaded.
 - **Step 8:** Added five-fold stratified cross-validation and randomized hyperparameter tuning for Random Forest and Decision Tree on both binary and five-class targets. The author ran the full test suite (17 passed in 2.52 seconds) and the full-data tuning run successfully. Best mean CV macro F1 was 0.998955 for binary Random Forest and 0.946326 for five-class Random Forest. Generated CSV, JSON, and PNG reports were confirmed; `KDDTest+` was not loaded or scored.
+- **Step 9:** Added `src/training/official_evaluation.py` and `tests/test_official_evaluation.py`. The script locks the Step 8 parameters, fits binary and five-class Random Forest/Decision Tree pipelines on full `KDDTrain+`, then loads `KDDTest+` for held-out evaluation. It writes aggregate metrics, detailed per-class reports, confusion matrices, runtime/throughput, and train/test distribution comparisons. Local test execution and the full-data evaluation are pending.
