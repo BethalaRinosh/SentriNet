@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–7 of 16 complete.** Steps 1–7 are implemented and locally validated. Step 7's full test suite passed (13 tests), and the full five-class baseline experiment completed without a Linear SVM convergence warning after its solver tolerance adjustment. The official `KDDTest+` remains reserved for final evaluation.
+> **Project status: Steps 1–7 complete; Step 8 implemented, local verification pending.** The repository health review found no blocking issue in the current training pipeline. Step 8 adds five-fold stratified cross-validation and randomized hyperparameter tuning for Random Forest and Decision Tree on both targets. The official `KDDTest+` remains reserved for final evaluation.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -187,13 +187,43 @@ Generated files go to `reports/baseline_multiclass/` (ignored by Git):
 
 The pasted test run had one failing assertion because the toy metric example has exactly one true record per class, making macro and weighted F1 equal. The test has been corrected to assert that expected equality. The subsequent full test run passed all 13 tests. The full-data experiment was rerun after configuring Linear SVM with `dual=False`, `max_iter=5000`, and `tol=1e-3`; the warning no longer appeared. This confirms the current baseline run completes cleanly, though it does not make the internal validation split a substitute for the official held-out test set.
 
+## Stratified cross-validation and hyperparameter tuning (Step 8)
+
+The module `src/training/cv_tuning.py` tunes the two strongest baseline candidates, **Random Forest** and **Decision Tree**, for both the binary target (`Normal` vs `Attack`) and five-class target (`Normal`, `DoS`, `Probe`, `R2L`, `U2R`).
+
+Run from the repository root:
+
+```bash
+python -m src.training.cv_tuning
+```
+
+The default run uses all records in the official `KDDTrain+.txt`, five-fold shuffled `StratifiedKFold` with `random_state=42`, randomized search over four parameter combinations per model and task, and macro F1 as the selection metric. It searches four combinations of task/model (two models for each of two targets). Each fold fits its own preprocessing because scaling and one-hot encoding remain inside the scikit-learn pipeline. The search refits the winning pipeline on all supplied training rows in memory but does not save a model artifact; model persistence belongs to a later step.
+
+Optional faster exploratory run:
+
+```bash
+python -m src.training.cv_tuning --sample-size 30000 --n-iter 2
+```
+
+Use `--cv-folds` to change the number of folds and `--n-iter` to change randomized candidates per model/task. The script checks that each class has at least as many rows as CV folds. The optional sample is drawn reproducibly from `KDDTrain+`; it is not a replacement for the full-data default.
+
+Generated files are written to `reports/cv_tuning/` (ignored by Git):
+
+- `cv_tuning_summary.csv`: best mean CV macro F1, fold-to-fold standard deviation, candidate count, and best parameter JSON for each task/model.
+- `cv_tuning_details.json`: class counts, selected parameters, and per-candidate CV scores, variability, rank, and fit time.
+- `cv_tuning_macro_f1.png`: comparison chart of the best mean CV macro F1.
+
+**Evaluation boundary:** the official `KDDTest+.txt` is never loaded or scored in this step. Cross-validation results are model-selection evidence, not final held-out test performance. Rare U2R examples can make fold-level scores volatile even with stratification. Step 9 remains responsible for the final evaluation on the untouched official test split.
+
+**Validation status:** code and configuration are committed; local test-suite and full-data tuning verification are pending. Run `python -m pytest -q` and then `python -m src.training.cv_tuning`; review the complete output and generated files before treating Step 8 as verified.
+
 ## Results
 Internal validation baselines have been measured for binary and five-class tasks. These are not final results: the official `KDDTest+` has not been used for model evaluation. Steps 1–7 are locally validated.
 
 | Task | Model | Accuracy | Macro F1 | Weighted F1 | Status |
 |---|---|---:|---:|---:|---|
 | Binary | Random Forest | 0.998167 | 0.998158 | 0.998166 | Internal validation only |
-| Five-class | Random Forest | 0.998730 | 0.936115 | 0.998709 | Internal validation only; rerun pending |
+| Five-class | Random Forest | 0.998730 | 0.936115 | 0.998709 | Internal validation only |
 
 Accuracy will not be reported alone. The final analysis will discuss class imbalance, rare R2L/U2R examples, and the distribution difference between NSL-KDD's official train and test sets.
 
@@ -273,10 +303,10 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based; later cross-validation and held-out evaluation are still required. Binary and five-class baselines are locally validated; final evaluation on the official `KDDTest+` remains pending. Final model selection, official test metrics, and UI features are not complete.
+- Feature importance is exploratory and impurity-based. Cross-validation and tuning are implemented in Step 8 but still require local verification; final evaluation on the official `KDDTest+` remains pending. Final model selection, official test metrics, model persistence, and UI features are not complete.
 
 ## Future work
-- Complete the leakage-safe binary and five-class ML experiments.
+- Verify the cross-validation/tuning experiments, then complete final held-out evaluation on the official `KDDTest+`.
 - Add a reproducible model comparison and a local interactive dashboard.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
 - Investigate explainability and robustness to distribution shift.
