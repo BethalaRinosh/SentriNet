@@ -309,7 +309,7 @@ python -m pytest -q
 **Validation status:** source files and tests are committed; the author must run the new tests and `python -m src.training.save_models` locally before this step can be marked fully validated.
 
 ## Results
-Internal validation and cross-validation results are available for model selection. Official held-out test results should be taken only from the author's run of `reports/official_evaluation/official_evaluation_summary.csv`; they are not hard-coded into this README.
+Internal validation and cross-validation results are available for model selection. The official held-out metrics are summarized in the Step 9 table above; the author's generated `reports/official_evaluation/official_evaluation_summary.csv` and `official_evaluation_details.json` contain the full local report.
 
 ### Baseline validation results
 
