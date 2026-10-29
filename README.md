@@ -148,7 +148,21 @@ Generated outputs go to `reports/baseline_binary/` (ignored by Git):
 
 Use `--sample-size` to change the reproducible sample size and `--validation-size` to change the held-out fraction from the sampled training records. The validation subset is not the official test set. These results are preliminary model-selection evidence; Step 8 will use stratified cross-validation and tuning, and the official test set will be used only during the final evaluation step.
 
-**Validation status:** implementation and unit tests are committed; local execution of the full test suite and baseline experiment is pending.
+**Validation status:** locally verified by the project author. The full test suite passed (`10 passed in 2.73s`), and all five baseline models completed on a reproducible 30,000-row sample from `KDDTrain+` with a stratified 24,000/6,000 training/validation split. The official `KDDTest+` was not loaded.
+
+### Observed binary baseline results
+
+These results are from the internal validation subset of `KDDTrain+`, not the official test set.
+
+| Model | Accuracy | Macro F1 | Weighted F1 | ROC-AUC | Fit time (s) | Predict time (s) |
+|---|---:|---:|---:|---:|---:|---:|
+| Random Forest | 0.998167 | 0.998158 | 0.998166 | 0.999773 | 0.5386 | 0.0405 |
+| Decision Tree | 0.996500 | 0.996485 | 0.996500 | 0.996496 | 0.3128 | 0.0141 |
+| K-Nearest Neighbors | 0.994333 | 0.994308 | 0.994333 | 0.998401 | 0.0629 | 2.0938 |
+| Linear SVM | 0.974833 | 0.974710 | 0.974827 | 0.996313 | 0.6347 | 0.0165 |
+| Logistic Regression | 0.973500 | 0.973352 | 0.973484 | 0.996490 | 0.5000 | 0.0159 |
+
+**Interpretation:** Random Forest has the strongest macro F1 and ROC-AUC among these preliminary baselines. KNN fit quickly but had the slowest validation prediction time. These results are unusually strong and should be treated as internal validation evidence only: the random split comes from the same official training source and may not reflect the distribution shift in `KDDTest+`. We must not claim these are final generalization results. Later cross-validation/tuning and evaluation on the untouched official test split remain necessary.
 
 ## Results
 **No measured predictive results yet.** This table will be populated from the evaluation scripts after training and testing have run successfully.
@@ -253,4 +267,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 3:** Added and locally ran `src/eda.py`; all five figures were generated from the official files. The largest class proportion differences (test minus train) were R2L +12.01 pp and Normal -10.38 pp. No model training or test-set fitting occurred.
 - **Step 4:** Added the 40-feature selector, one-hot encoding for the three categorical fields, numeric standardization, a scikit-learn model pipeline, optional balanced class weights, and preprocessing unit tests. The author ran the tests locally: 4 passed.
 - **Step 5:** Added `src/feature_selection.py`, which fits a reproducible Random Forest on a sample of official `KDDTrain+` only, aggregates encoded importances to original features, and writes a CSV ranking and top-20 plot. The author ran the script successfully and the full test suite passed (7 tests).
-- **Step 6 (local verification pending):** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The official `KDDTest+` is not loaded by the baseline runner.
+- **Step 6:** Added five binary baseline classifiers, stratified validation from the official training split, class-aware metrics, timing, per-model JSON details, a macro-F1 comparison CSV/chart, and unit tests. The author ran the full suite locally (10 passed) and completed the baseline experiment on a 30,000-row training sample. Random Forest led the internal validation comparison (macro F1 0.998158); the official `KDDTest+` was not loaded. Results are documented as preliminary, not final test performance.
