@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–19 are implemented and verified.** The application includes the NSL-KDD ML pipeline, saved classifiers, FastAPI inference, single-record and batch CSV analysis, five independent dashboard views, official-test performance analytics, and motion polish. Step 19 integration verification passed: 52 automated tests, 23 focused API tests, Python compilation, JavaScript syntax validation, and manual browser checks of API status, binary/multiclass inference, CSV validation/prediction/export, and offline handling. One non-blocking Starlette/httpx deprecation warning remains. No live packet capture is implemented.
+> **Project status: Steps 1–19 are verified. The consolidated Steps 20–22 diagnostic implementation is committed; local execution and result validation are pending.** The application includes the NSL-KDD ML pipeline, saved classifiers, FastAPI inference, single-record and batch CSV analysis, five independent dashboard views, official-test performance analytics, and motion polish. Step 19 integration verification passed: 52 automated tests, 23 focused API tests, Python compilation, JavaScript syntax validation, and manual browser checks of API status, binary/multiclass inference, CSV validation/prediction/export, and offline handling. One non-blocking Starlette/httpx deprecation warning remains. No live packet capture is implemented.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -536,12 +536,11 @@ The dependency list in `requirements.txt` contains the libraries used by the cur
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based. Step 9's official-test evaluation and Step 10's persistence/inference code were locally validated. The FastAPI service and browser dashboard are implemented; browser end-to-end verification remains outstanding.
+- Feature importance is exploratory and impurity-based. The official evaluation, saved inference pipelines, FastAPI service, and browser dashboard have been locally validated. The training-only diagnostic experiments are experimental analysis tools, not production detection guarantees.
 
 ## Future work
-- Add prediction explainability that helps users understand which input features influenced a model output, without presenting feature attribution as proof of malicious activity.
-- Investigate robustness to distribution shift and the weak R2L/U2R results using training-only validation; keep the official test set untouched for final evaluation.
-- Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
+- If time permits, conduct a separately documented cross-dataset study using UNSW-NB15 or CICIDS2017. This requires independent schema mapping and evaluation; it is not part of the current validated scope.
+- Do not add SHAP or other per-prediction explanation libraries unless a concrete user or evaluation requirement justifies their runtime and maintenance cost.
 
 ## Author
 **Bethala Rinosh**  
@@ -595,6 +594,28 @@ The frontend's **Model Performance** view presents the recorded official `KDDTes
 The view does not fabricate confusion-matrix counts. The evaluation script generates full confusion matrices and classification reports locally under `reports/official_evaluation/`, but those generated report files are ignored by Git and are not part of the repository. The page therefore explains this limitation rather than rendering guessed matrix values. Official test results must remain a final benchmark and must not be used for hyperparameter tuning.
 
 
+## Training-only model diagnostics (Steps 20–22)
+
+The module `src/training/diagnostics.py` adds a reproducible diagnostic track without changing the deployed model artifacts or opening the official test split.
+
+Run from the repository root after installing dependencies and placing the official `KDDTrain+.txt` file in `data/raw/`:
+
+```bash
+python -m src.training.diagnostics
+```
+
+The script creates a stratified validation holdout from **KDDTrain+ only** (default 25%, random state 42) and reports:
+
+- Per-class precision, recall, F1, support, and a fixed-order confusion matrix.
+- Baseline Random Forest vs. class-weighted Random Forest vs. Random Forest with random oversampling. The sampler is inside an imbalanced-learn pipeline, so it is fitted only on the training partition.
+- Error breakdown by true family, predicted family, and original NSL-KDD attack name.
+- Stress tests on the same validation records: unseen categorical values and a controlled +10% perturbation to selected nonnegative numeric features.
+
+Outputs are written locally under `reports/training_diagnostics/`: `training_diagnostics.json`, `imbalance_comparison.csv`, and `baseline_misclassifications.csv`. These generated reports remain ignored by Git. The diagnostic candidates are not saved as deployable models and do not replace the current Random Forest artifacts. Synthetic perturbations are controlled stress tests, not evidence of real-world attack behavior.
+
+**Validation boundary:** helper-level automated tests cover label ordering, metric summaries, variant isolation, and experiment pipeline construction. The full dataset experiment must be run locally by the author. Its measured results must be inspected before claiming any strategy improves detection. `KDDTest+` remains reserved for final evaluation and must not be used for model selection.
+
+
 ## End-to-end integration verification (Step 19)
 
 The author completed an integration pass across the automated test suite, API tests, Python compilation, frontend JavaScript syntax, and the running browser application.
@@ -612,3 +633,5 @@ This verifies the local application workflow described above. It does not establ
 ## Dashboard motion and interaction polish
 
 The frontend includes a shared motion system for view entrances, staggered cards, count-up metric values, animated comparison bars, hover feedback, result reveal, and table-row interactions. Animations replay when switching views. The implementation checks the browser's `prefers-reduced-motion` setting and reduces motion when requested. These are presentation-only effects; they do not alter model predictions or evaluation metrics.
+
+- **Consolidated Steps 20–22:** Added `src/training/diagnostics.py` for training-only class-imbalance experiments, family/raw-attack error analysis, and controlled robustness stress tests. Added helper regression tests. The module does not modify deployed model artifacts and never loads KDDTest+. Local full-suite and dataset-run verification are pending.
