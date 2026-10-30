@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–13 are implemented in the repository.** The author has locally verified the Step 13 suite (13 API tests and 42 total tests passed) before the final audit edge-case addition. The browser dashboard is implemented; its end-to-end browser workflow remains to be confirmed.
+> **Project status: Steps 1–14 are implemented in the repository.** Steps 1–13 were locally verified by the author. Step 14 adds CSV validation, preview, batch prediction, summaries, and result export; run the updated tests and browser workflow locally after pulling.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -402,6 +402,34 @@ python -m pytest -q
 
 The new regression tests cover non-finite numbers, oversized numeric values, negative numeric values, and blank categorical values in addition to the existing request, model-readiness, and CORS tests. The author confirmed 13 API tests and 42 total tests passed before the final oversized-integer edge-case test was added; rerun both commands after pulling the latest audit fix.
 
+## Batch CSV analysis (Step 14)
+
+The dashboard supports batch analysis of structured connection records through a CSV upload. The backend provides two multipart endpoints:
+
+- \`POST /validate/csv\`: validates the CSV and returns the total record count plus a preview of up to five records. It does not run inference.
+- \`POST /predict/csv\`: validates the upload and returns one prediction per row for the selected task (\`binary_label\` or \`class_label\`).
+
+CSV requirements and safeguards:
+- UTF-8 encoding is required; UTF-8 BOM is accepted.
+- The header must contain every one of the 40 model feature names from \`src/preprocessing/pipeline.py\`. Additional columns are ignored.
+- Duplicate headers, missing/blank values, non-numeric numeric fields, non-finite values, and negative numeric values are rejected.
+- Maximum upload size is 5 MB and maximum record count is 5,000.
+- Categorical feature values must be non-empty strings. Unseen categories remain accepted by the trained encoder's \`handle_unknown="ignore"\` behavior.
+- The API returns row-level validation errors as HTTP 422 and upload/record limit errors as HTTP 413.
+
+In the dashboard, open **Analyze a connection dataset**, select a CSV, click **Validate & preview**, choose Binary or Attack family mode, then click **Analyze batch**. The result view shows predicted-label counts and a row-level prediction table. **Export predictions CSV** downloads row number, predicted label, confidence score, and binary attack probability where available. Confidence remains a model score, not a calibrated probability.
+
+The export contains prediction results, not a copy of all original input columns. The feature CSV is processed by the local SentriNet API; no external service is used by this workflow. It still analyzes structured NSL-KDD-style records and does not capture live network packets.
+
+Run API tests and the full suite:
+
+\`\`\`bash
+python -m pytest tests/test_api.py -q
+python -m pytest -q
+\`\`\`
+
+The tests cover multi-record inference, validation-only preview, missing/duplicate headers, invalid numeric values, empty files, unsupported task/file types, and the record limit. Also verify the upload, preview, binary and multiclass modes, and export in a browser with both local servers running.
+
 ## Results
 Internal validation and cross-validation results are available for model selection. The official held-out metrics are summarized in the Step 9 table above; the author's generated `reports/official_evaluation/official_evaluation_summary.csv` and `official_evaluation_details.json` contain the full local report.
 
@@ -510,7 +538,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Feature importance is exploratory and impurity-based. Step 9's official-test evaluation and Step 10's persistence/inference code were locally validated. The FastAPI service and browser dashboard are implemented; browser end-to-end verification remains outstanding.
 
 ## Future work
-- Verify the dashboard workflow in a browser; then consider batch CSV import and analysis.
+- Verify the batch CSV upload, preview, binary/multiclass prediction, and export in a browser. Then consider richer result filtering and explainability.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
 - Investigate explainability and robustness to distribution shift.
 
@@ -531,4 +559,5 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 10:** Added `src/training/save_models.py` to refit the two Random Forest candidates selected by training-only CV and save their complete preprocessing/model pipelines with provenance metadata. Added `src/inference/predict.py` and `tests/test_model_persistence.py`. The author confirmed 7 focused tests and 29 total tests passed, then generated both artifacts and metadata using only `KDDTrain+`.
 - **Step 11:** Added `app/backend/main.py` with `/health`, `/predict/binary`, and `/predict/multiclass` endpoints, input validation, and actionable errors when artifacts are missing. Added `tests/test_api.py` using synthetic records and stub inference. The author ran the focused API tests (8 passed) and full suite (37 passed); one non-blocking Starlette deprecation warning remains.
 - **Step 12:** Added the responsive HTML/CSS/JavaScript dashboard in `app/frontend/`, with 40-feature form generation, binary/five-class mode selection, API health status, result/confidence display, illustrative form values, and error/loading states. Added restricted local-development CORS origins so the separately served frontend can call FastAPI. The author verified 9 API tests and 38 total tests after the CORS change.
-- **Step 13:** Hardened API validation to reject non-finite, oversized, and negative numeric features and blank categorical values before model inference. Added regression tests and documented the input contract. The author verified 13 API tests and 42 total tests; the final oversized-integer regression test was added during the repository health audit and awaits a local rerun.
+- **Step 13:** Hardened API validation to reject non-finite, oversized, and negative numeric features and blank categorical values before model inference. Added regression tests and documented the input contract. The author verified 14 API tests and 43 total tests after the final oversized-integer regression test.
+- **Step 14:** Added UTF-8 CSV validation and preview endpoints, 5 MB/5,000-record limits, strict 40-feature input checks, batch binary/five-class inference, prediction summaries, and CSV export in the dashboard. Added regression tests for batch prediction and invalid uploads. Local verification is pending.
