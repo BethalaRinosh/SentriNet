@@ -7,3 +7,10 @@
 .batch-mode{display:flex;flex-direction:column;gap:5px;color:#71849a;font:8px "DM Mono",monospace;letter-spacing:.8px}.batch-mode select{height:36px;min-width:120px;padding:0 9px;border:1px solid #34465a;border-radius:7px;background:#111b27;color:#d4e0ed;font:10px Manrope,system-ui,sans-serif}
 
 .template-link{color:var(--mint);text-decoration:none;margin-left:5px}.template-link:hover{text-decoration:underline}
+
+
+/* One-click illustrative scenarios for live demonstrations */
+.preset-picker{display:flex;align-items:center;gap:7px;color:#71849a;font:8px "DM Mono",monospace;letter-spacing:.7px}
+.preset-picker select{height:30px;max-width:190px;padding:0 8px;border:1px solid #34465a;border-radius:6px;background:#111b27;color:#d4e0ed;font:10px Manrope,system-ui,sans-serif}
+.preset-load{white-space:nowrap}
+@media(max-width:620px){.preset-picker{width:100%;justify-content:space-between}.preset-picker select{flex:1;max-width:none}.form-tools>span{width:100%}}
