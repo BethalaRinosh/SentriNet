@@ -66,3 +66,56 @@
 .architecture-flow span{padding:10px 12px;background:#111d29;border:1px solid #293949;border-radius:7px;color:#c7d4e2;font-size:10px}
 .architecture-flow b{text-align:center;color:var(--mint);font-size:12px}
 @media(max-width:620px){.model-detail-grid{grid-template-columns:1fr}.view-heading{padding:23px 0 17px}}
+
+
+/* Step 18: evidence-backed model performance dashboard */
+.performance-banner{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px 19px;border:1px solid #315141;border-radius:11px;background:linear-gradient(110deg,#14271f,#111b26);margin:0 0 30px}
+.performance-banner strong,.performance-banner small{display:block}
+.performance-kicker{display:block;color:#8ab99f;font:8px "DM Mono",monospace;letter-spacing:1px;margin-bottom:7px}
+.performance-banner strong{font-size:15px;color:#e2f4e9}
+.performance-banner small{font-size:9px;color:#8da395;margin-top:5px}
+.evaluation-stamp{font:8px "DM Mono",monospace;letter-spacing:.7px;color:#a9e7c8;border:1px solid #3c7258;border-radius:5px;padding:7px 9px;white-space:nowrap}
+.performance-section{margin:0 0 34px}
+.performance-section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin:0 0 14px}
+.performance-section-heading h2{font-size:21px;letter-spacing:-.7px;margin:6px 0}
+.performance-section-heading p{font-size:10px;color:#8798ac;margin:0}
+.metric-note{font:8px "DM Mono",monospace;color:#74879d}
+.metric-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:12px}
+.metric-card{padding:15px 17px}
+.metric-card>span{display:block;color:#8194aa;font:8px "DM Mono",monospace;letter-spacing:.7px}
+.metric-card strong{display:block;color:var(--mint);font:27px "DM Mono",monospace;letter-spacing:-1px;margin:8px 0 3px}
+.metric-card small{font-size:9px;color:#8294a9}
+.chart-panel,.compact-table-panel{padding:19px;margin-bottom:12px}
+.chart-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+.chart-title h3{font-size:13px;margin:0 0 4px}
+.chart-title p{font-size:9px;color:#7f91a6;margin:0}
+.chart-legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:#8b9caf;font-size:8px}
+.chart-legend i{width:7px;height:7px;border-radius:2px;display:inline-block;margin-left:7px}
+.legend-rf,.rf-fill{background:#68c99b}
+.legend-dt,.dt-fill{background:#78a9e8}
+.comparison-chart{display:grid;gap:17px}
+.comparison-row>span{display:block;color:#9cacc0;font-size:9px;margin-bottom:7px}
+.comparison-bars{display:grid;grid-template-columns:minmax(70px,1fr) 43px minmax(70px,1fr) 43px;gap:7px;align-items:center}
+.bar-track{height:8px;border-radius:99px;background:#253342;overflow:hidden}
+.bar-fill{height:100%;display:block;border-radius:99px}
+.comparison-bars b{font:9px "DM Mono",monospace;color:#b8c7d7;text-align:right}
+.chart-footnote{border-top:1px solid #273545;margin-top:18px;padding-top:12px;color:#8496aa;font-size:9px;line-height:1.7}
+.performance-table-wrap{overflow-x:auto}
+.performance-table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+.performance-table th{font:8px "DM Mono",monospace;letter-spacing:.4px;text-transform:uppercase;color:#71859b;padding:9px 11px;border-bottom:1px solid #2b3948}
+.performance-table td{font-size:10px;color:#bdcbd9;padding:11px;border-bottom:1px solid #243140}
+.performance-table tbody tr:last-child td{border-bottom:0}
+.performance-table td:not(:first-child){font:10px "DM Mono",monospace;color:#a9e8c8}
+.performance-table .weak-class td{color:#ffb38d}
+.class-warning{margin-top:13px;padding:12px 13px;border:1px solid #644333;background:#261d19;border-radius:8px;color:#d6b6a0;font-size:9px;line-height:1.7}
+.class-warning strong{color:#ffc08e}
+.insight-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.insight-card{padding:16px}
+.insight-index{font:9px "DM Mono",monospace;color:var(--mint);border:1px solid #315141;background:#14251f;border-radius:5px;padding:5px 7px}
+.insight-card h3{font-size:12px;margin:13px 0 7px}
+.insight-card p{font-size:9px;line-height:1.8;color:#899aae;margin:0}
+.evaluation-caveat{margin:13px 0 0;padding:14px 15px;border:1px solid #344353;border-radius:9px;background:#111a25;color:#899bad;font-size:9px;line-height:1.8}
+.evaluation-caveat strong{color:#c5d5e4}
+.evaluation-caveat code{font:9px "DM Mono",monospace;color:#b5d9c5}
+@media(max-width:760px){.metric-card-grid{grid-template-columns:1fr 1fr}.metric-card-grid .metric-card:last-child{grid-column:1/-1}.insight-grid{grid-template-columns:1fr}.performance-banner{align-items:flex-start;flex-direction:column}.chart-title{flex-direction:column}.performance-section-heading{align-items:flex-start;flex-direction:column}}
+@media(max-width:480px){.metric-card-grid{grid-template-columns:1fr}.metric-card-grid .metric-card:last-child{grid-column:auto}.comparison-bars{grid-template-columns:minmax(55px,1fr) 39px minmax(55px,1fr) 39px;gap:5px}.chart-panel,.compact-table-panel{padding:14px}.performance-banner{padding:14px}.performance-section-heading h2{font-size:18px}}
