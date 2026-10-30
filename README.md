@@ -593,3 +593,8 @@ The dashboard uses independent single-page application views controlled by the s
 The frontend's **Model Performance** view presents the recorded official `KDDTest+` evaluation for the locked Random Forest and Decision Tree pipelines. It separates binary and five-class results, visualizes accuracy/F1/ROC-AUC comparisons, and includes the recorded class-wise F1 and selected recall values. The dashboard labels class-wise F1 values as rounded and keeps training-only cross-validation results separate from official test metrics.
 
 The view does not fabricate confusion-matrix counts. The evaluation script generates full confusion matrices and classification reports locally under `reports/official_evaluation/`, but those generated report files are ignored by Git and are not part of the repository. The page therefore explains this limitation rather than rendering guessed matrix values. Official test results must remain a final benchmark and must not be used for hyperparameter tuning.
+
+
+## Dashboard motion and interaction polish
+
+The frontend includes a shared motion system for view entrances, staggered cards, count-up metric values, animated comparison bars, hover feedback, result reveal, and table-row interactions. Animations replay when switching views. The implementation checks the browser's `prefers-reduced-motion` setting and reduces motion when requested. These are presentation-only effects; they do not alter model predictions or evaluation metrics.
