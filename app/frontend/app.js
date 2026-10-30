@@ -479,6 +479,47 @@
   });
 
 
+  // Motion system: replay entrance, counter and chart animations whenever a view opens.
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function animateCounter(element) {
+    const finalText = element.dataset.finalText || element.textContent.trim();
+    element.dataset.finalText = finalText;
+    const match = finalText.match(/^([^0-9-]*)(-?\\d[\\d,]*(?:\\.\\d+)?)(.*)$/);
+    if (!match) return;
+    const prefix = match[1], raw = match[2], suffix = match[3];
+    const target = Number(raw.replace(/,/g, ""));
+    if (!Number.isFinite(target)) return;
+    const decimals = (raw.split(".")[1] || "").length;
+    const padWidth = raw.replace(/,/g, "").split(".")[0].length;
+    if (reduceMotion) { element.textContent = finalText; return; }
+    const duration = 1050, start = performance.now();
+    element.textContent = prefix + (0).toFixed(decimals) + suffix;
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      let formatted = (target * eased).toLocaleString("en-US", {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+      if (/^0\\d/.test(raw) && target < 10) formatted = formatted.replace(/^\\d+/, value => value.padStart(padWidth, "0"));
+      element.textContent = prefix + formatted + suffix;
+      if (progress < 1) requestAnimationFrame(tick); else element.textContent = finalText;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function animateView(view) {
+    if (!view) return;
+    view.classList.remove("motion-enter");
+    void view.offsetWidth;
+    view.classList.add("motion-enter");
+    if (reduceMotion) return;
+    view.querySelectorAll(".metric-card strong, .overview-stat strong").forEach(animateCounter);
+    view.querySelectorAll(".bar-fill").forEach(bar => {
+      const targetWidth = bar.dataset.targetWidth || bar.style.width;
+      bar.dataset.targetWidth = targetWidth;
+      bar.style.width = "0";
+      requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = targetWidth; }));
+    });
+  }
+
   // Sidebar navigation switches independent workspace views instead of scrolling anchors.
   const viewTitles = {overview:"Overview",analyzer:"Threat analyzer",batch:"Batch analysis",performance:"Model performance",models:"Model information"};
   function showView(name) {
@@ -495,6 +536,7 @@
       } else if (!active && dot) dot.remove();
     });
     document.getElementById("breadcrumb-current").textContent = viewTitles[name];
+    animateView(document.querySelector('.app-view[data-view="' + name + '"]'));
     history.replaceState(null, "", "#" + name);
     window.scrollTo({top:0,behavior:"auto"});
   }
