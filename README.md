@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–13 are implemented in the repository.** Steps 9–12 were implemented and the author verified the Step 12 test suite locally (38 passed). Step 13 hardens API input validation; run the updated tests locally after pulling the latest changes.
+> **Project status: Steps 1–13 are implemented in the repository.** The author has locally verified the Step 13 suite (13 API tests and 42 total tests passed) before the final audit edge-case addition. The browser dashboard is implemented; its end-to-end browser workflow remains to be confirmed.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -380,7 +380,7 @@ The dashboard checks `/health` and displays whether the API and saved artifacts 
 
 The backend allows cross-origin requests from the local development origins on ports 5500 and 8000. Keep the API and dashboard local during development. This UI accepts structured connection features and does not capture traffic from a network interface.
 
-**Validation status:** frontend and CORS changes are committed. Run `python -m pytest tests/test_api.py -q` and `python -m pytest -q` locally after pulling these changes. Browser interaction should also be checked by starting both servers and submitting a record.
+**Validation status:** the author verified the API tests (9 passed) and full suite (38 passed) after the frontend/CORS changes. A live browser walkthrough should still be performed by starting both servers and submitting a record.
 
 
 ## API input hardening (Step 13)
@@ -400,7 +400,7 @@ python -m pytest tests/test_api.py -q
 python -m pytest -q
 ```
 
-The new regression tests cover non-finite numbers, negative numeric values, and blank categorical values in addition to the existing request, model-readiness, and CORS tests.
+The new regression tests cover non-finite numbers, oversized numeric values, negative numeric values, and blank categorical values in addition to the existing request, model-readiness, and CORS tests. The author confirmed 13 API tests and 42 total tests passed before the final oversized-integer edge-case test was added; rerun both commands after pulling the latest audit fix.
 
 ## Results
 Internal validation and cross-validation results are available for model selection. The official held-out metrics are summarized in the Step 9 table above; the author's generated `reports/official_evaluation/official_evaluation_summary.csv` and `official_evaluation_details.json` contain the full local report.
@@ -507,10 +507,10 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Some attack categories, particularly R2L and U2R, have very few samples and can be difficult to classify reliably.
 - The official train/test distributions differ; test performance may therefore be lower than training or cross-validation performance.
 - Classification results alone do not establish that a system is safe or effective in live deployments.
-- Feature importance is exploratory and impurity-based. Step 9's official-test evaluation and Step 10's persistence/inference code were locally validated. Step 11 adds the FastAPI service; the browser dashboard is not implemented yet.
+- Feature importance is exploratory and impurity-based. Step 9's official-test evaluation and Step 10's persistence/inference code were locally validated. The FastAPI service and browser dashboard are implemented; browser end-to-end verification remains outstanding.
 
 ## Future work
-- Verify the dashboard workflow in a browser and consider importing a batch of records for analysis.
+- Verify the dashboard workflow in a browser; then consider batch CSV import and analysis.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
 - Investigate explainability and robustness to distribution shift.
 
@@ -531,4 +531,4 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 10:** Added `src/training/save_models.py` to refit the two Random Forest candidates selected by training-only CV and save their complete preprocessing/model pipelines with provenance metadata. Added `src/inference/predict.py` and `tests/test_model_persistence.py`. The author confirmed 7 focused tests and 29 total tests passed, then generated both artifacts and metadata using only `KDDTrain+`.
 - **Step 11:** Added `app/backend/main.py` with `/health`, `/predict/binary`, and `/predict/multiclass` endpoints, input validation, and actionable errors when artifacts are missing. Added `tests/test_api.py` using synthetic records and stub inference. The author ran the focused API tests (8 passed) and full suite (37 passed); one non-blocking Starlette deprecation warning remains.
 - **Step 12:** Added the responsive HTML/CSS/JavaScript dashboard in `app/frontend/`, with 40-feature form generation, binary/five-class mode selection, API health status, result/confidence display, illustrative form values, and error/loading states. Added restricted local-development CORS origins so the separately served frontend can call FastAPI. The author verified 9 API tests and 38 total tests after the CORS change.
-- **Step 13:** Hardened API validation to reject non-finite and negative numeric features and blank categorical values before model inference. Added regression tests and documented the input contract. Local verification of the new tests remains pending.
+- **Step 13:** Hardened API validation to reject non-finite, oversized, and negative numeric features and blank categorical values before model inference. Added regression tests and documented the input contract. The author verified 13 API tests and 42 total tests; the final oversized-integer regression test was added during the repository health audit and awaits a local rerun.
