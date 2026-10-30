@@ -586,3 +586,10 @@ The dashboard landing section summarizes the official NSL-KDD dataset split size
 ## Separate dashboard workspaces (Step 17 revision)
 
 The dashboard uses independent single-page application views controlled by the sidebar. Overview, Threat Analyzer, Batch Analysis, Model Performance, and Model Information render as separate views; selecting a tab switches the visible workspace and resets scroll to the top instead of scrolling to an anchor on one long page. The Model Performance view is a clearly marked placeholder until the evaluation analytics are implemented in the next step. The existing single-record inference and CSV batch workflows are preserved.
+
+
+## Model performance dashboard (Step 18)
+
+The frontend's **Model Performance** view presents the recorded official `KDDTest+` evaluation for the locked Random Forest and Decision Tree pipelines. It separates binary and five-class results, visualizes accuracy/F1/ROC-AUC comparisons, and includes the recorded class-wise F1 and selected recall values. The dashboard labels class-wise F1 values as rounded and keeps training-only cross-validation results separate from official test metrics.
+
+The view does not fabricate confusion-matrix counts. The evaluation script generates full confusion matrices and classification reports locally under `reports/official_evaluation/`, but those generated report files are ignored by Git and are not part of the repository. The page therefore explains this limitation rather than rendering guessed matrix values. Official test results must remain a final benchmark and must not be used for hyperparameter tuning.
