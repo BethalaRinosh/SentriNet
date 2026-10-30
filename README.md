@@ -421,6 +421,8 @@ In the dashboard, open **Analyze a connection dataset**, select a CSV, click **V
 
 The dashboard links to `app/frontend/connection_features_template.csv`, a header-only template containing the required 40 feature names. Add one connection per row before uploading. The export contains prediction results, not a copy of all original input columns. The feature CSV is processed by the local SentriNet API; no external service is used by this workflow. It still analyzes structured NSL-KDD-style records and does not capture live network packets.
 
+Locally verified by the project author after Step 14: `python -m pytest tests/test_api.py -q` reported **23 passed**, and `python -m pytest -q` reported **52 passed**. The test suite includes API and backend validation coverage; it does not replace the remaining manual browser workflow check.
+
 Run API tests and the full suite:
 
 ```bash
@@ -525,10 +527,9 @@ SentriNet/
 - Jupyter Notebook
 - FastAPI and Uvicorn
 - Plain HTML, CSS and JavaScript
-- Chart.js for browser charts
 - pytest and joblib
 
-The dependency list is an initial scaffold and will be validated as the modules are implemented.
+The dependency list in `requirements.txt` contains the libraries used by the current training, API, and test workflows. Install it with `python -m pip install -r requirements.txt`.
 
 ## Limitations
 - NSL-KDD is a benchmark dataset, not a complete representation of modern production network traffic.
