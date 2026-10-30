@@ -419,7 +419,7 @@ CSV requirements and safeguards:
 
 In the dashboard, open **Analyze a connection dataset**, select a CSV, click **Validate & preview**, choose Binary or Attack family mode, then click **Analyze batch**. The result view shows predicted-label counts and a row-level prediction table. **Export predictions CSV** downloads row number, predicted label, confidence score, and binary attack probability where available. Confidence remains a model score, not a calibrated probability.
 
-The export contains prediction results, not a copy of all original input columns. The feature CSV is processed by the local SentriNet API; no external service is used by this workflow. It still analyzes structured NSL-KDD-style records and does not capture live network packets.
+The dashboard links to `app/frontend/connection_features_template.csv`, a header-only template containing the required 40 feature names. Add one connection per row before uploading. The export contains prediction results, not a copy of all original input columns. The feature CSV is processed by the local SentriNet API; no external service is used by this workflow. It still analyzes structured NSL-KDD-style records and does not capture live network packets.
 
 Run API tests and the full suite:
 
