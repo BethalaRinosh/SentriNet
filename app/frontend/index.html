@@ -51,6 +51,7 @@
         </div>
         <div class="batch-controls">
           <label class="upload-field" for="batch-file"><span class="upload-icon">↥</span><span><strong id="batch-file-name">Choose a CSV file</strong><small>UTF-8 CSV · header row required</small></span><input id="batch-file" type="file" accept=".csv,text/csv"></label>
+          <label class="batch-mode">MODEL MODE<select id="batch-mode"><option value="binary_label">Binary</option><option value="class_label">Attack family</option></select></label>
           <button id="preview-batch" class="secondary-button" type="button" disabled>Validate &amp; preview</button>
           <button id="run-batch" class="primary-button" type="button" disabled><span>Analyze batch</span><span class="button-arrow">↗</span></button>
         </div>
