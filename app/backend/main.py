@@ -255,3 +255,19 @@ async def predict_csv(
     content = await file.read(MAX_CSV_BYTES + 1)
     records = _parse_csv_records(content)
     return _predict(PredictionRequest(records=records), task)
+
+
+
+@app.post("/validate/csv")
+async def validate_csv(file: UploadFile = File(...)) -> dict[str, Any]:
+    """Validate a CSV and return a small preview without running inference."""
+    if file.filename and not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=422, detail="Upload a .csv file.")
+    content = await file.read(MAX_CSV_BYTES + 1)
+    records = _parse_csv_records(content)
+    return {
+        "valid": True,
+        "count": len(records),
+        "columns": len(MODEL_FEATURE_COLUMNS),
+        "preview": records[:5],
+    }
