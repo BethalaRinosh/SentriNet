@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Core development and Step 16 demonstration improvements are implemented.** The author verified 52 automated tests before the later frontend-only presentation updates. The browser CSV workflow was manually exercised successfully. The current dashboard includes single-record inference, four illustrative scenario presets, batch CSV analysis, and an overview landing section. Presentation analytics are being added incrementally; no live packet capture is implemented.
+> **Project status: Core development, Step 17 multi-view navigation, and Step 18 model performance dashboard are implemented.** The author verified 52 automated tests before the later frontend-only presentation updates. The browser CSV workflow was manually exercised successfully. The current dashboard includes single-record inference, four illustrative scenario presets, batch CSV analysis, and an overview landing section. Presentation analytics are being added incrementally; no live packet capture is implemented.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
