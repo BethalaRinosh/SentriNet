@@ -162,8 +162,65 @@
       </div>
 
       <div class="app-view" id="view-performance" data-view="performance">
-        <div class="view-heading"><div class="section-kicker">MODEL EVALUATION / COMING NEXT</div><h1>Model performance</h1><p>Algorithm comparisons, official test metrics and class-wise evaluation will appear here in the next development step.</p></div>
-        <section class="panel placeholder-panel"><div class="placeholder-icon">◫</div><h2>Performance analytics</h2><p>This workspace is reserved for evidence-backed model comparisons, confusion matrices and per-class metrics from the recorded NSL-KDD evaluation reports.</p><span class="placeholder-status">ANALYTICS MODULE IN PROGRESS</span></section>
+        <div class="view-heading"><div class="section-kicker">MODEL EVALUATION / OFFICIAL HOLDOUT</div><h1>Model performance</h1><p>Evaluation of the locked Random Forest and Decision Tree pipelines on the untouched NSL-KDD KDDTest+ split. Metrics below are test results, not training scores.</p></div>
+
+        <section class="performance-banner">
+          <div><span class="performance-kicker">EVALUATION DATASET</span><strong>NSL-KDD · KDDTest+</strong><small>22,544 connection records · 2 classification tasks · 4 fitted model/task combinations</small></div>
+          <span class="evaluation-stamp">OFFICIAL TEST SET</span>
+        </section>
+
+        <section class="performance-section">
+          <div class="performance-section-heading"><div><span class="section-kicker">01 / BINARY CLASSIFICATION</span><h2>Normal vs Attack</h2><p>Two-class detection performance on the official test split.</p></div><span class="metric-note">Higher is better</span></div>
+          <div class="metric-card-grid">
+            <article class="panel metric-card"><span>BEST ACCURACY</span><strong>79.40%</strong><small>Decision Tree · 0.793958</small></article>
+            <article class="panel metric-card"><span>BEST MACRO F1</span><strong>0.794</strong><small>Decision Tree · 0.793723</small></article>
+            <article class="panel metric-card"><span>BEST ROC-AUC</span><strong>0.957</strong><small>Random Forest · 0.957480</small></article>
+          </div>
+          <div class="panel chart-panel">
+            <div class="chart-title"><div><h3>Model comparison</h3><p>Official KDDTest+ scores. Bars share a 0–1 scale.</p></div><span class="chart-legend"><i class="legend-rf"></i> Random Forest <i class="legend-dt"></i> Decision Tree</span></div>
+            <div class="comparison-chart">
+              <div class="comparison-row"><span>Accuracy</span><div class="comparison-bars"><div class="bar-track"><i class="bar-fill rf-fill" style="width:78.1139%"></i></div><b>0.7811</b><div class="bar-track"><i class="bar-fill dt-fill" style="width:79.3958%"></i></div><b>0.7940</b></div></div>
+              <div class="comparison-row"><span>Macro F1</span><div class="comparison-bars"><div class="bar-track"><i class="bar-fill rf-fill" style="width:78.0427%"></i></div><b>0.7804</b><div class="bar-track"><i class="bar-fill dt-fill" style="width:79.3723%"></i></div><b>0.7937</b></div></div>
+              <div class="comparison-row"><span>ROC-AUC</span><div class="comparison-bars"><div class="bar-track"><i class="bar-fill rf-fill" style="width:95.748%"></i></div><b>0.9575</b><div class="bar-track"><i class="bar-fill dt-fill" style="width:81.4087%"></i></div><b>0.8141</b></div></div>
+            </div>
+            <div class="chart-footnote">Random Forest ranks Attack probabilities better (higher ROC-AUC); Decision Tree performs slightly better at the default prediction threshold.</div>
+          </div>
+          <div class="panel compact-table-panel"><div class="chart-title"><div><h3>Binary class recall</h3><p>Share of each true class correctly identified.</p></div></div>
+            <div class="performance-table-wrap"><table class="performance-table"><thead><tr><th>Actual class</th><th>Random Forest</th><th>Decision Tree</th></tr></thead><tbody><tr><td>Normal</td><td>0.97</td><td>0.96</td></tr><tr><td>Attack</td><td>0.64</td><td>0.67</td></tr></tbody></table></div>
+          </div>
+        </section>
+
+        <section class="performance-section">
+          <div class="performance-section-heading"><div><span class="section-kicker">02 / FIVE-CLASS CLASSIFICATION</span><h2>Attack category classification</h2><p>Normal, DoS, Probe, R2L and U2R. Macro F1 matters because it weights each class equally.</p></div></div>
+          <div class="metric-card-grid">
+            <article class="panel metric-card"><span>BEST ACCURACY</span><strong>76.21%</strong><small>Random Forest · 0.762110</small></article>
+            <article class="panel metric-card"><span>BEST MACRO F1</span><strong>0.518</strong><small>Decision Tree · 0.517832</small></article>
+            <article class="panel metric-card"><span>RF WEIGHTED F1</span><strong>0.714</strong><small>Random Forest · 0.713959</small></article>
+          </div>
+          <div class="panel chart-panel">
+            <div class="chart-title"><div><h3>Five-class model comparison</h3><p>Official KDDTest+ scores. Bars share a 0–1 scale.</p></div><span class="chart-legend"><i class="legend-rf"></i> Random Forest <i class="legend-dt"></i> Decision Tree</span></div>
+            <div class="comparison-chart">
+              <div class="comparison-row"><span>Accuracy</span><div class="comparison-bars"><div class="bar-track"><i class="bar-fill rf-fill" style="width:76.211%"></i></div><b>0.7621</b><div class="bar-track"><i class="bar-fill dt-fill" style="width:75.0044%"></i></div><b>0.7500</b></div></div>
+              <div class="comparison-row"><span>Macro F1</span><div class="comparison-bars"><div class="bar-track"><i class="bar-fill rf-fill" style="width:51.4196%"></i></div><b>0.5142</b><div class="bar-track"><i class="bar-fill dt-fill" style="width:51.7832%"></i></div><b>0.5178</b></div></div>
+              <div class="comparison-row"><span>Weighted F1</span><div class="bar-track"><i class="bar-fill rf-fill" style="width:71.3959%"></i></div><b>0.7140</b><div class="bar-track"><i class="bar-fill dt-fill" style="width:70.9837%"></i></div><b>0.7098</b></div>
+            </div>
+            <div class="chart-footnote">The accuracy scores look stronger than macro F1 because common classes dominate the test set while rare classes are much harder to recognize.</div>
+          </div>
+          <div class="panel compact-table-panel"><div class="chart-title"><div><h3>Per-class F1 score</h3><p>Rounded to two decimals from the recorded official evaluation report.</p></div></div>
+            <div class="performance-table-wrap"><table class="performance-table"><thead><tr><th>Class</th><th>Random Forest</th><th>Decision Tree</th></tr></thead><tbody><tr><td>Normal</td><td>0.80</td><td>0.80</td></tr><tr><td>DoS</td><td>0.87</td><td>0.86</td></tr><tr><td>Probe</td><td>0.73</td><td>0.66</td></tr><tr class="weak-class"><td>R2L</td><td>0.02</td><td>0.09</td></tr><tr><td>U2R</td><td>0.15</td><td>0.19</td></tr></tbody></table></div>
+            <div class="class-warning"><strong>R2L is the major failure point.</strong> Recall is approximately 0.01 for Random Forest and 0.05 for Decision Tree, despite 2,885 R2L examples in KDDTest+. The models miss most R2L records.</div>
+          </div>
+        </section>
+
+        <section class="performance-section">
+          <div class="performance-section-heading"><div><span class="section-kicker">03 / HOW TO READ THESE RESULTS</span><h2>What the evaluation tells us</h2><p>Performance is uneven. These limitations matter more than a single headline accuracy score.</p></div></div>
+          <div class="insight-grid">
+            <article class="panel insight-card"><span class="insight-index">A</span><h3>Binary task is more reliable</h3><p>Both models separate Normal from Attack reasonably well, but Attack recall remains around 0.64–0.67. Some malicious records are still classified as Normal.</p></article>
+            <article class="panel insight-card"><span class="insight-index">B</span><h3>R2L distribution shift</h3><p>The official test set contains 2,885 R2L records, compared with only 995 in training. The model sees a very different class balance at evaluation time.</p></article>
+            <article class="panel insight-card"><span class="insight-index">C</span><h3>U2R has low support</h3><p>Only 67 U2R records occur in the official test split. Its per-class scores are therefore statistically unstable.</p></article>
+          </div>
+          <div class="evaluation-caveat"><strong>Evaluation integrity:</strong> hyperparameters were selected using training-only cross-validation. The official KDDTest+ split was held back for final evaluation and must not be used to tune the models. The confusion-matrix images and full JSON reports are generated locally under <code>reports/official_evaluation/</code> and are excluded from Git, so this page does not invent or display matrix counts that are not stored in the repository.</div>
+        </section>
       </div>
 
       <div class="app-view" id="view-models" data-view="models">
