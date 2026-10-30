@@ -44,6 +44,29 @@
         <div class="status-right"><span class="status-label">BACKEND</span><code id="api-url-label">127.0.0.1:8000</code></div>
       </section>
 
+      <section class="panel batch-panel" id="batch-analysis">
+        <div class="panel-heading">
+          <div><div class="section-kicker">BATCH WORKSPACE / CSV</div><h2>Analyze a connection dataset</h2><p>Upload up to 5,000 rows with the 40 NSL-KDD model features.</p></div>
+          <span class="batch-tag">CSV · MAX 5 MB</span>
+        </div>
+        <div class="batch-controls">
+          <label class="upload-field" for="batch-file"><span class="upload-icon">↥</span><span><strong id="batch-file-name">Choose a CSV file</strong><small>UTF-8 CSV · header row required</small></span><input id="batch-file" type="file" accept=".csv,text/csv"></label>
+          <button id="preview-batch" class="secondary-button" type="button" disabled>Validate &amp; preview</button>
+          <button id="run-batch" class="primary-button" type="button" disabled><span>Analyze batch</span><span class="button-arrow">↗</span></button>
+        </div>
+        <p id="batch-message" class="batch-message" aria-live="polite">Select a CSV to begin. The server checks its schema and values before analysis.</p>
+        <div id="batch-preview-wrap" class="batch-table-wrap hidden">
+          <div class="batch-table-heading"><strong>First five records</strong><span id="batch-preview-count"></span></div>
+          <div class="batch-table-scroll"><table id="batch-preview-table"></table></div>
+        </div>
+        <div id="batch-results" class="hidden">
+          <div class="batch-summary" id="batch-summary"></div>
+          <div class="batch-table-heading"><strong>Prediction results</strong><span id="batch-result-count"></span></div>
+          <div class="batch-table-scroll"><table id="batch-result-table"></table></div>
+          <button id="export-batch" class="secondary-button export-button" type="button">↓ Export predictions CSV</button>
+        </div>
+      </section>
+
       <div class="workspace-grid">
         <section class="panel form-panel">
           <div class="panel-heading">
