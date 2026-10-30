@@ -1,11 +1,13 @@
 """FastAPI service for SentriNet's saved NSL-KDD classifiers."""
 from __future__ import annotations
 
+import csv
+import io
 import math
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -35,6 +37,9 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
+
+MAX_CSV_BYTES = 5 * 1024 * 1024
+MAX_CSV_RECORDS = 5000
 
 NUMERIC_FEATURES = [
     column for column in MODEL_FEATURE_COLUMNS
@@ -158,3 +163,95 @@ def predict_binary(request: PredictionRequest) -> PredictionResponse:
 def predict_multiclass(request: PredictionRequest) -> PredictionResponse:
     """Predict Normal, DoS, Probe, R2L, or U2R for each record."""
     return _predict(request, "class_label")
+
+
+
+def _parse_csv_records(content: bytes) -> list[dict[str, Any]]:
+    """Parse and validate a feature CSV before sending records to inference."""
+    if not content:
+        raise HTTPException(status_code=422, detail="The uploaded CSV is empty.")
+    if len(content) > MAX_CSV_BYTES:
+        raise HTTPException(status_code=413, detail="CSV files must be 5 MB or smaller.")
+    try:
+        decoded = content.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=422, detail="CSV must use UTF-8 encoding.") from exc
+
+    reader = csv.DictReader(io.StringIO(decoded, newline=""))
+    headers = reader.fieldnames
+    if not headers:
+        raise HTTPException(status_code=422, detail="CSV is missing a header row.")
+    if len(headers) != len(set(headers)):
+        raise HTTPException(status_code=422, detail="CSV contains duplicate column names.")
+
+    missing = [name for name in MODEL_FEATURE_COLUMNS if name not in headers]
+    if missing:
+        raise HTTPException(
+            status_code=422,
+            detail={"message": "CSV is missing required feature columns.", "missing_features": missing},
+        )
+
+    records: list[dict[str, Any]] = []
+    for row_number, row in enumerate(reader, start=2):
+        if None in row:
+            raise HTTPException(
+                status_code=422,
+                detail=f"CSV row {row_number} has more values than the header.",
+            )
+        record: dict[str, Any] = {}
+        for name in MODEL_FEATURE_COLUMNS:
+            raw_value = row.get(name)
+            if raw_value is None or not raw_value.strip():
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"CSV row {row_number}: feature '{name}' is empty.",
+                )
+            if name in CATEGORICAL_FEATURES:
+                record[name] = raw_value.strip()
+            else:
+                try:
+                    value = float(raw_value)
+                except ValueError as exc:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"CSV row {row_number}: feature '{name}' must be numeric.",
+                    ) from exc
+                if not math.isfinite(value):
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"CSV row {row_number}: feature '{name}' must be finite.",
+                    )
+                if value < 0:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"CSV row {row_number}: feature '{name}' must be non-negative.",
+                    )
+                record[name] = value
+        records.append(record)
+        if len(records) > MAX_CSV_RECORDS:
+            raise HTTPException(
+                status_code=413,
+                detail=f"CSV files may contain at most {MAX_CSV_RECORDS} records.",
+            )
+
+    if not records:
+        raise HTTPException(status_code=422, detail="CSV contains a header but no data records.")
+    return records
+
+
+@app.post("/predict/csv", response_model=PredictionResponse)
+async def predict_csv(
+    file: UploadFile = File(...),
+    task: str = Form("binary_label"),
+) -> PredictionResponse:
+    """Validate a UTF-8 feature CSV and classify its rows in one request."""
+    if task not in {"binary_label", "class_label"}:
+        raise HTTPException(
+            status_code=422,
+            detail="task must be 'binary_label' or 'class_label'.",
+        )
+    if file.filename and not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=422, detail="Upload a .csv file.")
+    content = await file.read(MAX_CSV_BYTES + 1)
+    records = _parse_csv_records(content)
+    return _predict(PredictionRequest(records=records), task)
