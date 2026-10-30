@@ -423,8 +423,10 @@
     const link = document.createElement("a");
     link.href = url;
     link.download = "sentrinet_batch_predictions.csv";
+    document.body.append(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
   renderForm();
