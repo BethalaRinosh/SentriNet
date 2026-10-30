@@ -264,3 +264,34 @@ def test_csv_validation_endpoint_returns_preview_without_inference(monkeypatch):
     assert body["count"] == 1
     assert body["columns"] == 40
     assert len(body["preview"]) == 1
+
+
+
+def test_csv_batch_rejects_duplicate_headers():
+    headers = list(MODEL_FEATURE_COLUMNS)
+    headers[-1] = headers[0]
+    response = client.post(
+        "/validate/csv",
+        files={"file": ("duplicate.csv", (",".join(headers) + "\n").encode(), "text/csv")},
+    )
+    assert response.status_code == 422
+    assert "duplicate column" in response.json()["detail"]
+
+
+def test_csv_batch_enforces_record_limit(monkeypatch):
+    monkeypatch.setattr(main, "MAX_CSV_RECORDS", 1)
+    response = client.post(
+        "/validate/csv",
+        files={"file": ("large.csv", csv_payload([feature_record(), feature_record()]), "text/csv")},
+    )
+    assert response.status_code == 413
+    assert "at most 1 records" in response.json()["detail"]
+
+
+def test_csv_batch_rejects_non_csv_filename():
+    response = client.post(
+        "/validate/csv",
+        files={"file": ("connections.txt", csv_payload([feature_record()]), "text/plain")},
+    )
+    assert response.status_code == 422
+    assert ".csv" in response.json()["detail"]
