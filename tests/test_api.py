@@ -209,7 +209,7 @@ def test_csv_batch_rejects_missing_feature_columns():
     response = client.post(
         "/predict/csv",
         data={"task": "binary_label"},
-        files={"file": ("bad.csv", b"duration,protocol_type\\n0,tcp\\n", "text/csv")},
+        files={"file": ("bad.csv", b"duration,protocol_type\n0,tcp\n", "text/csv")},
     )
     assert response.status_code == 422
     assert "missing required feature columns" in response.json()["detail"]["message"]
