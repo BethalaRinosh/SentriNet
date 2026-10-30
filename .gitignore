@@ -21,16 +21,11 @@ ENV/
 data/raw/*
 !data/raw/.gitkeep
 data/processed/
-*.csv
-*.txt
-!requirements.txt
-!README.md
 
 # Generated artifacts and reports
 models/*
 !models/.gitkeep
 reports/*
-!reports/.gitkeep
 *.joblib
 *.pkl
 *.pickle
@@ -38,7 +33,6 @@ reports/*
 *.jpg
 *.jpeg
 *.gif
-*.html
 
 # OS/editor
 .DS_Store
