@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–14 are implemented in the repository.** Steps 1–14 have locally verified automated test suites (52 tests pass). Step 14 adds CSV validation, preview, batch prediction, summaries, and result export. The API health check and dashboard connection have been confirmed; the complete browser CSV workflow is still awaiting manual verification.
+> **Project status: Core development and Step 16 demonstration improvements are implemented.** The author verified 52 automated tests before the later frontend-only presentation updates. The browser CSV workflow was manually exercised successfully. The current dashboard includes single-record inference, four illustrative scenario presets, batch CSV analysis, and an overview landing section. Presentation analytics are being added incrementally; no live packet capture is implemented.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -574,3 +574,10 @@ The manual connection form includes four one-click, hand-authored 40-feature pre
 ### Result visualization polish
 
 The binary result panel displays attack probability with a red horizontal indicator bar. Its width reflects the returned `attack_probability` value (0–100%), independently of the model-confidence bar.
+
+
+## Presentation overview (Step 17)
+
+The dashboard landing section summarizes the official NSL-KDD dataset split sizes (125,973 training records and 22,544 held-out test records), the 40 model inputs, and the two separately trained Random Forest classifiers. Sidebar navigation links to the overview, single-record threat analyzer, batch CSV workspace, and model reference. The displayed dataset counts are fixed benchmark metadata, not live traffic telemetry. The overview does not present validation metrics as official test results.
+
+- **Step 17:** Added a presentation-oriented overview landing section with dataset/model summary cards, direct links into single-record and batch analysis, and sidebar navigation for Overview, Threat Analyzer, Batch Analysis, and Model Reference. The existing inference and batch workflows remain in place.
