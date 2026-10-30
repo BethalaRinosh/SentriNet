@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Steps 1–14 are implemented in the repository.** Steps 1–13 were locally verified by the author. Step 14 adds CSV validation, preview, batch prediction, summaries, and result export; run the updated tests and browser workflow locally after pulling.
+> **Project status: Steps 1–14 are implemented in the repository.** Steps 1–14 have locally verified automated test suites (52 tests pass). Step 14 adds CSV validation, preview, batch prediction, summaries, and result export. The API health check and dashboard connection have been confirmed; the complete browser CSV workflow is still awaiting manual verification.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -538,7 +538,7 @@ The dependency list is an initial scaffold and will be validated as the modules 
 - Feature importance is exploratory and impurity-based. Step 9's official-test evaluation and Step 10's persistence/inference code were locally validated. The FastAPI service and browser dashboard are implemented; browser end-to-end verification remains outstanding.
 
 ## Future work
-- Verify the batch CSV upload, preview, binary/multiclass prediction, and export in a browser. Then consider richer result filtering and explainability.
+- Complete manual browser verification of CSV upload, preview, binary/multiclass prediction, and export. Then consider richer result filtering and explainability.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
 - Investigate explainability and robustness to distribution shift.
 
