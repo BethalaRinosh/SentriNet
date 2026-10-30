@@ -406,15 +406,15 @@ The new regression tests cover non-finite numbers, oversized numeric values, neg
 
 The dashboard supports batch analysis of structured connection records through a CSV upload. The backend provides two multipart endpoints:
 
-- \`POST /validate/csv\`: validates the CSV and returns the total record count plus a preview of up to five records. It does not run inference.
-- \`POST /predict/csv\`: validates the upload and returns one prediction per row for the selected task (\`binary_label\` or \`class_label\`).
+- `POST /validate/csv`: validates the CSV and returns the total record count plus a preview of up to five records. It does not run inference.
+- `POST /predict/csv`: validates the upload and returns one prediction per row for the selected task (`binary_label` or `class_label`).
 
 CSV requirements and safeguards:
 - UTF-8 encoding is required; UTF-8 BOM is accepted.
-- The header must contain every one of the 40 model feature names from \`src/preprocessing/pipeline.py\`. Additional columns are ignored.
+- The header must contain every one of the 40 model feature names from `src/preprocessing/pipeline.py`. Additional columns are ignored.
 - Duplicate headers, missing/blank values, non-numeric numeric fields, non-finite values, and negative numeric values are rejected.
 - Maximum upload size is 5 MB and maximum record count is 5,000.
-- Categorical feature values must be non-empty strings. Unseen categories remain accepted by the trained encoder's \`handle_unknown="ignore"\` behavior.
+- Categorical feature values must be non-empty strings. Unseen categories remain accepted by the trained encoder's `handle_unknown="ignore"` behavior.
 - The API returns row-level validation errors as HTTP 422 and upload/record limit errors as HTTP 413.
 
 In the dashboard, open **Analyze a connection dataset**, select a CSV, click **Validate & preview**, choose Binary or Attack family mode, then click **Analyze batch**. The result view shows predicted-label counts and a row-level prediction table. **Export predictions CSV** downloads row number, predicted label, confidence score, and binary attack probability where available. Confidence remains a model score, not a calibrated probability.
@@ -423,10 +423,10 @@ The export contains prediction results, not a copy of all original input columns
 
 Run API tests and the full suite:
 
-\`\`\`bash
+```bash
 python -m pytest tests/test_api.py -q
 python -m pytest -q
-\`\`\`
+```
 
 The tests cover multi-record inference, validation-only preview, missing/duplicate headers, invalid numeric values, empty files, unsupported task/file types, and the record limit. Also verify the upload, preview, binary and multiclass modes, and export in a browser with both local servers running.
 
