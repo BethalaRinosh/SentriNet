@@ -478,6 +478,24 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
+
+  // Sidebar navigation: reflect the most recently selected workspace section.
+  document.querySelectorAll(".nav-item[data-nav]").forEach(link => {
+    link.addEventListener("click", () => {
+      document.querySelectorAll(".nav-item[data-nav]").forEach(item => {
+        const active = item === link;
+        item.classList.toggle("active", active);
+        const dot = item.querySelector(".nav-dot");
+        if (dot) dot.remove();
+      });
+      if (!link.querySelector(".nav-dot")) {
+        const dot = document.createElement("span");
+        dot.className = "nav-dot";
+        link.append(dot);
+      }
+    });
+  });
+
   renderForm();
   if (allFields.length !== 40) {
     showError("Frontend schema mismatch: expected 40 features but rendered " + allFields.length + ".");
