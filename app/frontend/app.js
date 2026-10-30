@@ -352,10 +352,11 @@
     if (!selectedBatchFile || !batchValidated || !apiOnline) return;
     const formData = new FormData();
     formData.append("file", selectedBatchFile);
-    formData.append("task", mode === "binary" ? "binary_label" : "class_label");
+    const batchTask = document.getElementById("batch-mode").value;
+    formData.append("task", batchTask);
     runBatchButton.disabled = true;
     previewBatchButton.disabled = true;
-    setBatchMessage("Analyzing CSV records with the " + (mode === "binary" ? "binary" : "five-class") + " model…", "");
+    setBatchMessage("Analyzing CSV records with the " + (batchTask === "binary_label" ? "binary" : "five-class") + " model…", "");
     try {
       const response = await fetch(API_BASE + "/predict/csv", {method:"POST", body:formData});
       const data = await response.json().catch(() => ({}));
