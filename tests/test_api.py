@@ -158,3 +158,16 @@ def test_blank_categorical_feature_is_rejected():
     response = client.post("/predict/binary", json={"records": [record]})
     assert response.status_code == 422
     assert "must not be empty" in response.json()["detail"]
+
+
+
+def test_extremely_large_integer_is_rejected_as_non_finite():
+    record = feature_record()
+    record["src_bytes"] = 10 ** 400
+    response = client.post(
+        "/predict/binary",
+        content=json.dumps({"records": [record]}),
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert "must be finite" in response.json()["detail"]
