@@ -245,3 +245,22 @@ def test_csv_batch_rejects_unsupported_task():
     )
     assert response.status_code == 422
     assert "task must be" in response.json()["detail"]
+
+
+
+def test_csv_validation_endpoint_returns_preview_without_inference(monkeypatch):
+    monkeypatch.setattr(
+        main,
+        "predict_records",
+        lambda submitted, task: (_ for _ in ()).throw(AssertionError("inference must not run")),
+    )
+    response = client.post(
+        "/validate/csv",
+        files={"file": ("connections.csv", csv_payload([feature_record()]), "text/csv")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is True
+    assert body["count"] == 1
+    assert body["columns"] == 40
+    assert len(body["preview"]) == 1
