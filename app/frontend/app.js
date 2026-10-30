@@ -20,6 +20,7 @@
   const modeButtons = [...document.querySelectorAll(".mode-button")];
   let mode = "binary";
   let apiOnline = false;
+  let modelsReady = false;
 
   function prettyName(name) {
     return name.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
@@ -98,6 +99,7 @@
 
   function setApiStatus(online, modelsReady, modelsPresent) {
     apiOnline = online;
+    modelsReady = Boolean(modelsReady);
     ["api-dot", "sidebar-dot"].forEach(id => {
       const dot = document.getElementById(id);
       dot.classList.toggle("online", online && modelsReady);
@@ -116,9 +118,8 @@
         ? "Both saved model artifacts are present and ready for inference."
         : "Missing model(s): " + missing.join(", ") + ". Run python -m src.training.save_models.";
     }
-    submitButton.disabled = !online;
-    if (!online) runBatchButton.disabled = true;
-    else if (batchValidated && !batchPredictions.length) runBatchButton.disabled = false;
+    submitButton.disabled = !(online && modelsReady);
+    runBatchButton.disabled = !(online && modelsReady && batchValidated);
   }
 
   async function refreshHealth() {
@@ -214,7 +215,7 @@
       document.querySelector("#empty-result h3").textContent = "Awaiting connection";
       document.querySelector("#empty-result p").textContent = "Submit a record to see the model's prediction and confidence score.";
     } finally {
-      submitButton.disabled = !apiOnline;
+      submitButton.disabled = !(apiOnline && modelsReady);
       submitButton.querySelector("span").textContent = originalText;
     }
   });
@@ -338,7 +339,7 @@
         data.preview.map((record, index) => [index + 1, ...previewFields.map(name => record[name])])
       );
       document.getElementById("batch-preview-wrap").classList.remove("hidden");
-      runBatchButton.disabled = !apiOnline;
+      runBatchButton.disabled = !(apiOnline && modelsReady);
       setBatchMessage("CSV validated successfully. Preview shown below. Ready to analyze " + data.count + " records.", "success");
     } catch (error) {
       batchValidated = false;
@@ -349,7 +350,7 @@
   });
 
   runBatchButton.addEventListener("click", async () => {
-    if (!selectedBatchFile || !batchValidated || !apiOnline) return;
+    if (!selectedBatchFile || !batchValidated || !apiOnline || !modelsReady) return;
     const formData = new FormData();
     formData.append("file", selectedBatchFile);
     const batchTask = document.getElementById("batch-mode").value;
@@ -398,7 +399,7 @@
       setBatchMessage(error.message || "Batch analysis failed.", "error");
     } finally {
       previewBatchButton.disabled = !selectedBatchFile;
-      runBatchButton.disabled = !batchValidated || !apiOnline;
+      runBatchButton.disabled = !(batchValidated && apiOnline && modelsReady);
     }
   });
 
