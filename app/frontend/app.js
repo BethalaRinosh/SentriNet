@@ -484,7 +484,7 @@
   function animateCounter(element) {
     const finalText = element.dataset.finalText || element.textContent.trim();
     element.dataset.finalText = finalText;
-    const match = finalText.match(/^([^0-9-]*)(-?\\d[\\d,]*(?:\\.\\d+)?)(.*)$/);
+    const match = finalText.match(/^([^0-9-]*)(-?\d[\d,]*(?:\.\d+)?)(.*)$/);
     if (!match) return;
     const prefix = match[1], raw = match[2], suffix = match[3];
     const target = Number(raw.replace(/,/g, ""));
@@ -498,7 +498,7 @@
       const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 4);
       let formatted = (target * eased).toLocaleString("en-US", {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
-      if (/^0\\d/.test(raw) && target < 10) formatted = formatted.replace(/^\\d+/, value => value.padStart(padWidth, "0"));
+      if (/^0\d/.test(raw) && target < 10) formatted = formatted.replace(/^\d+/, value => value.padStart(padWidth, "0"));
       element.textContent = prefix + formatted + suffix;
       if (progress < 1) requestAnimationFrame(tick); else element.textContent = finalText;
     }
