@@ -83,7 +83,8 @@
           </div>
           <div class="form-tools">
             <span>NSL-KDD CONNECTION RECORD</span>
-            <button id="load-demo" class="text-button" type="button">↳ Load illustrative values</button>
+            <label class="preset-picker">DEMO SCENARIO<select id="scenario-preset"><option value="normal">Normal web browsing</option><option value="dos">DoS traffic surge</option><option value="probe">Port scanning / probe</option><option value="login">Repeated login attempts</option></select></label>
+            <button id="load-preset" class="text-button preset-load" type="button">↳ Load scenario</button>
             <button id="reset-form" class="text-button muted" type="button">Reset</button>
           </div>
           <form id="connection-form">
