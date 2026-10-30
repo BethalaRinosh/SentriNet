@@ -26,13 +26,6 @@ data/processed/
 models/*
 !models/.gitkeep
 reports/*
-*.joblib
-*.pkl
-*.pickle
-*.png
-*.jpg
-*.jpeg
-*.gif
 
 # OS/editor
 .DS_Store
