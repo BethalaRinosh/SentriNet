@@ -1,4 +1,6 @@
 """API tests use synthetic records and stub inference; no real models required."""
+import json
+
 from fastapi.testclient import TestClient
 
 from app.backend import main
@@ -119,7 +121,12 @@ def test_local_frontend_cors_preflight_is_allowed():
 def test_non_finite_numeric_feature_is_rejected():
     record = feature_record()
     record["src_bytes"] = float("nan")
-    response = client.post("/predict/binary", json={"records": [record]})
+    # Send raw JSON: httpx's json= encoder rejects NaN before making a request.
+    response = client.post(
+        "/predict/binary",
+        content=json.dumps({"records": [record]}, allow_nan=True),
+        headers={"Content-Type": "application/json"},
+    )
     assert response.status_code == 422
     assert "must be finite" in response.json()["detail"]
 
@@ -127,7 +134,12 @@ def test_non_finite_numeric_feature_is_rejected():
 def test_infinite_numeric_feature_is_rejected():
     record = feature_record()
     record["src_bytes"] = float("inf")
-    response = client.post("/predict/binary", json={"records": [record]})
+    # Raw JSON lets the server parser receive Infinity so API validation is exercised.
+    response = client.post(
+        "/predict/binary",
+        content=json.dumps({"records": [record]}, allow_nan=True),
+        headers={"Content-Type": "application/json"},
+    )
     assert response.status_code == 422
     assert "must be finite" in response.json()["detail"]
 
