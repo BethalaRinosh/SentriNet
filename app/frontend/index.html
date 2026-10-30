@@ -18,8 +18,10 @@
         <span class="brand-name">sentri<span>net</span><small>NETWORK INTELLIGENCE</small></span>
       </a>
       <div class="side-label">WORKSPACE</div>
-      <a class="nav-item active" href="#analyzer"><span class="nav-icon">⌁</span> Connection analyzer <span class="nav-dot"></span></a>
-      <a class="nav-item" href="#model-info"><span class="nav-icon">◈</span> Model overview</a>
+      <a class="nav-item active" href="#overview" data-nav="overview"><span class="nav-icon">▦</span> Overview <span class="nav-dot"></span></a>
+      <a class="nav-item" href="#analyzer" data-nav="analyzer"><span class="nav-icon">⌁</span> Threat analyzer</a>
+      <a class="nav-item" href="#batch-analysis" data-nav="batch"><span class="nav-icon">▤</span> Batch analysis</a>
+      <a class="nav-item" href="#model-info" data-nav="models"><span class="nav-icon">◈</span> Model reference</a>
       <div class="sidebar-bottom">
         <div class="api-indicator"><span id="sidebar-dot" class="status-dot"></span><div><strong>API connection</strong><small id="sidebar-api-text">Checking service…</small></div></div>
         <div class="sidebar-foot">SENTRINET / BUILD 0.1.0</div>
@@ -32,7 +34,7 @@
         <div class="topbar-right"><span class="environment-pill"><span></span> LOCAL ENVIRONMENT</span><button id="refresh-health" class="icon-button" type="button" title="Refresh API status" aria-label="Refresh API status">↻</button></div>
       </header>
 
-      <section class="page-intro" id="analyzer">
+      <section class="page-intro" id="overview">
         <div class="eyebrow"><span class="eyebrow-line"></span> MACHINE LEARNING / NETWORK SECURITY</div>
         <h1>Every connection<br><span>leaves a signal.</span></h1>
         <p class="intro-copy">Inspect a structured network connection record and let SentriNet's trained classifiers assess its traffic pattern.</p>
@@ -42,6 +44,31 @@
       <section class="status-strip" aria-live="polite">
         <div class="status-main"><span id="api-dot" class="status-dot"></span><div><strong id="api-status-title">Connecting to API</strong><p id="api-status-detail">Checking local backend and saved model artifacts.</p></div></div>
         <div class="status-right"><span class="status-label">BACKEND</span><code id="api-url-label">127.0.0.1:8000</code></div>
+      </section>
+
+      <section class="overview-section" aria-labelledby="overview-title">
+        <div class="overview-heading">
+          <div><div class="section-kicker">PROJECT SNAPSHOT / NSL-KDD</div><h2 id="overview-title">Network intelligence at a glance</h2><p>Two trained classifiers, one shared preprocessing pipeline, and a local inference dashboard.</p></div>
+          <a class="overview-link" href="#analyzer">Open threat analyzer <span>↗</span></a>
+        </div>
+        <div class="overview-stats">
+          <article class="overview-stat"><span>TRAINING RECORDS</span><strong>125,973</strong><small>Official KDDTrain+ split</small></article>
+          <article class="overview-stat"><span>HELD-OUT TEST RECORDS</span><strong>22,544</strong><small>Official KDDTest+ split</small></article>
+          <article class="overview-stat"><span>MODEL INPUT FEATURES</span><strong>40</strong><small>After constant-feature exclusion</small></article>
+          <article class="overview-stat"><span>TRAINED CLASSIFIERS</span><strong>02</strong><small>Binary + five-class Random Forest</small></article>
+        </div>
+        <div class="overview-bottom">
+          <article class="overview-card">
+            <div class="section-kicker">01 / BINARY CLASSIFICATION</div><h3>Normal vs Attack</h3><p>Identifies whether a structured connection record is classified as normal traffic or an attack.</p><div class="overview-tags"><span>2 classes</span><span>Random Forest</span></div>
+          </article>
+          <article class="overview-card">
+            <div class="section-kicker">02 / ATTACK FAMILY</div><h3>Five-class classification</h3><p>Classifies records into Normal, DoS, Probe, R2L, or U2R categories.</p><div class="overview-tags"><span>5 classes</span><span>Random Forest</span></div>
+          </article>
+          <article class="overview-card overview-card-action">
+            <div class="section-kicker">LIVE WORKSPACE</div><h3>Analyze connection records</h3><p>Run one record through the feature form or validate and analyze a CSV dataset.</p><div class="overview-actions"><a href="#analyzer">Single record ↗</a><a href="#batch-analysis">Batch CSV ↗</a></div>
+          </article>
+        </div>
+        <p class="overview-disclaimer">Dataset counts describe the official NSL-KDD splits. They are not live traffic counts. SentriNet analyzes structured connection features and does not currently capture live packets.</p>
       </section>
 
       <section class="panel batch-panel" id="batch-analysis">
@@ -68,7 +95,7 @@
         </div>
       </section>
 
-      <div class="workspace-grid">
+      <div class="workspace-grid" id="analyzer">
         <section class="panel form-panel">
           <div class="panel-heading">
             <div><div class="section-kicker">01 / INPUT</div><h2>Connection details</h2><p>Provide the 40 features expected by the model.</p></div>
