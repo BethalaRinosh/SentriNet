@@ -569,3 +569,8 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 The manual connection form includes four one-click, hand-authored 40-feature presets: normal web browsing, DoS-like traffic surge, port-scanning/probe-like activity, and repeated login attempts (R2L-style). Loading a preset populates the existing form controls; users can edit the values and choose either Binary or Attack family classification before running inference. Preset names are descriptive scenarios only: they do not force a prediction, guarantee a particular label, or represent captured/ground-truth traffic. They exist to make a faculty demonstration repeatable without manually entering all 40 features.
 
 - **Step 16:** Added four editable, illustrative scenario presets to the manual connection analyzer so a presenter can load a complete 40-feature example in one click. Presets cover normal web browsing, DoS-like traffic surge, probe-like scanning, and repeated login attempts. The model still determines the prediction; scenario labels do not hard-code outputs.
+
+
+### Result visualization polish
+
+The binary result panel displays attack probability with a red horizontal indicator bar. Its width reflects the returned `attack_probability` value (0–100%), independently of the model-confidence bar.
