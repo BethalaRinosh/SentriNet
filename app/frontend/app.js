@@ -97,9 +97,9 @@
     return record;
   }
 
-  function setApiStatus(online, modelsReady, modelsPresent) {
+  function setApiStatus(online, ready, modelsPresent) {
     apiOnline = online;
-    modelsReady = Boolean(modelsReady);
+    modelsReady = Boolean(ready);
     ["api-dot", "sidebar-dot"].forEach(id => {
       const dot = document.getElementById(id);
       dot.classList.toggle("online", online && modelsReady);
