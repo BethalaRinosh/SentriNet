@@ -479,22 +479,39 @@
   });
 
 
-  // Sidebar navigation: reflect the most recently selected workspace section.
+  // Sidebar navigation switches independent workspace views instead of scrolling anchors.
+  const viewTitles = {overview:"Overview",analyzer:"Threat analyzer",batch:"Batch analysis",performance:"Model performance",models:"Model information"};
+  function showView(name) {
+    if (!viewTitles[name]) return;
+    document.querySelectorAll(".app-view").forEach(view => view.classList.toggle("active", view.dataset.view === name));
+    document.querySelectorAll(".nav-item[data-nav]").forEach(link => {
+      const active = link.dataset.nav === name;
+      link.classList.toggle("active", active);
+      const dot = link.querySelector(".nav-dot");
+      if (active && !dot) {
+        const marker = document.createElement("span");
+        marker.className = "nav-dot";
+        link.append(marker);
+      } else if (!active && dot) dot.remove();
+    });
+    document.getElementById("breadcrumb-current").textContent = viewTitles[name];
+    history.replaceState(null, "", "#" + name);
+    window.scrollTo({top:0,behavior:"auto"});
+  }
   document.querySelectorAll(".nav-item[data-nav]").forEach(link => {
-    link.addEventListener("click", () => {
-      document.querySelectorAll(".nav-item[data-nav]").forEach(item => {
-        const active = item === link;
-        item.classList.toggle("active", active);
-        const dot = item.querySelector(".nav-dot");
-        if (dot) dot.remove();
-      });
-      if (!link.querySelector(".nav-dot")) {
-        const dot = document.createElement("span");
-        dot.className = "nav-dot";
-        link.append(dot);
-      }
+    link.addEventListener("click", event => {
+      event.preventDefault();
+      showView(link.dataset.nav);
     });
   });
+  document.querySelectorAll("[data-open-view]").forEach(link => {
+    link.addEventListener("click", event => {
+      event.preventDefault();
+      showView(link.dataset.openView);
+    });
+  });
+  const initialView = location.hash.replace("#","");
+  showView(viewTitles[initialView] ? initialView : "overview");
 
   renderForm();
   if (allFields.length !== 40) {
