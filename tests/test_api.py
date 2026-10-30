@@ -1,4 +1,6 @@
 """API tests use synthetic records and stub inference; no real models required."""
+import csv
+import io
 import json
 
 from fastapi.testclient import TestClient
@@ -171,3 +173,75 @@ def test_extremely_large_integer_is_rejected_as_non_finite():
     )
     assert response.status_code == 422
     assert "must be finite" in response.json()["detail"]
+
+
+
+def csv_payload(records):
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=MODEL_FEATURE_COLUMNS)
+    writer.writeheader()
+    writer.writerows(records)
+    return buffer.getvalue().encode("utf-8")
+
+
+def test_csv_batch_endpoint_returns_one_prediction_per_record(monkeypatch):
+    records = [feature_record(), feature_record()]
+    monkeypatch.setattr(
+        main,
+        "predict_records",
+        lambda submitted, task: [
+            {"prediction": "Normal", "confidence": 0.9},
+            {"prediction": "Attack", "confidence": 0.8, "attack_probability": 0.8},
+        ],
+    )
+    response = client.post(
+        "/predict/csv",
+        data={"task": "binary_label"},
+        files={"file": ("connections.csv", csv_payload(records), "text/csv")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["count"] == 2
+    assert [item["prediction"] for item in body["predictions"]] == ["Normal", "Attack"]
+
+
+def test_csv_batch_rejects_missing_feature_columns():
+    response = client.post(
+        "/predict/csv",
+        data={"task": "binary_label"},
+        files={"file": ("bad.csv", b"duration,protocol_type\\n0,tcp\\n", "text/csv")},
+    )
+    assert response.status_code == 422
+    assert "missing required feature columns" in response.json()["detail"]["message"]
+
+
+def test_csv_batch_rejects_invalid_numeric_value():
+    record = feature_record()
+    record["src_bytes"] = "not-a-number"
+    response = client.post(
+        "/predict/csv",
+        data={"task": "binary_label"},
+        files={"file": ("bad.csv", csv_payload([record]), "text/csv")},
+    )
+    assert response.status_code == 422
+    assert "must be numeric" in response.json()["detail"]
+
+
+def test_csv_batch_rejects_empty_file():
+    response = client.post(
+        "/predict/csv",
+        data={"task": "binary_label"},
+        files={"file": ("empty.csv", b"", "text/csv")},
+    )
+    assert response.status_code == 422
+    assert "empty" in response.json()["detail"]
+
+
+def test_csv_batch_rejects_unsupported_task():
+    response = client.post(
+        "/predict/csv",
+        data={"task": "unknown"},
+        files={"file": ("connections.csv", csv_payload([feature_record()]), "text/csv")},
+    )
+    assert response.status_code == 422
+    assert "task must be" in response.json()["detail"]
