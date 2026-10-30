@@ -164,6 +164,7 @@
     if (typeof result.attack_probability === "number") {
       attackBlock.classList.remove("hidden");
       document.getElementById("attack-probability").textContent = (result.attack_probability * 100).toFixed(1) + "%";
+      document.getElementById("attack-probability-bar").style.width = Math.max(0, Math.min(100, result.attack_probability * 100)) + "%";
     } else {
       attackBlock.classList.add("hidden");
     }
