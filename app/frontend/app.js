@@ -117,6 +117,8 @@
         : "Missing model(s): " + missing.join(", ") + ". Run python -m src.training.save_models.";
     }
     submitButton.disabled = !online;
+    if (!online) runBatchButton.disabled = true;
+    else if (batchValidated && !batchPredictions.length) runBatchButton.disabled = false;
   }
 
   async function refreshHealth() {
@@ -250,6 +252,179 @@
     document.querySelector("#empty-result p").textContent = "Submit a record to see the model's prediction and confidence score.";
   });
   document.getElementById("refresh-health").addEventListener("click", refreshHealth);
+
+
+  // Batch CSV workflow: the API validates the full file before any inference.
+  const batchFileInput = document.getElementById("batch-file");
+  const previewBatchButton = document.getElementById("preview-batch");
+  const runBatchButton = document.getElementById("run-batch");
+  const batchMessage = document.getElementById("batch-message");
+  let selectedBatchFile = null;
+  let batchValidated = false;
+  let batchPredictions = [];
+
+  function setBatchMessage(message, kind) {
+    batchMessage.textContent = message;
+    batchMessage.className = "batch-message" + (kind ? " " + kind : "");
+  }
+
+  function renderTable(table, headers, rows) {
+    table.replaceChildren();
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    headers.forEach(value => {
+      const th = document.createElement("th");
+      th.textContent = value;
+      headRow.append(th);
+    });
+    thead.append(headRow);
+    const tbody = document.createElement("tbody");
+    rows.forEach(row => {
+      const tr = document.createElement("tr");
+      row.forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = value == null ? "" : String(value);
+        tr.append(td);
+      });
+      tbody.append(tr);
+    });
+    table.append(thead, tbody);
+  }
+
+  function resetBatchResults() {
+    batchPredictions = [];
+    document.getElementById("batch-results").classList.add("hidden");
+    document.getElementById("batch-preview-wrap").classList.add("hidden");
+    runBatchButton.disabled = true;
+  }
+
+  batchFileInput.addEventListener("change", () => {
+    selectedBatchFile = batchFileInput.files[0] || null;
+    batchValidated = false;
+    resetBatchResults();
+    previewBatchButton.disabled = !selectedBatchFile;
+    document.getElementById("batch-file-name").textContent =
+      selectedBatchFile ? selectedBatchFile.name : "Choose a CSV file";
+    setBatchMessage(
+      selectedBatchFile ? "File selected. Validate it to inspect the schema and first records." : "Select a CSV to begin.",
+      ""
+    );
+  });
+
+  previewBatchButton.addEventListener("click", async () => {
+    if (!selectedBatchFile) return;
+    if (selectedBatchFile.size > 5 * 1024 * 1024) {
+      setBatchMessage("The CSV exceeds the 5 MB upload limit.", "error");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", selectedBatchFile);
+    previewBatchButton.disabled = true;
+    setBatchMessage("Validating CSV headers and every record…", "");
+    try {
+      const response = await fetch(API_BASE + "/validate/csv", {method:"POST", body:formData});
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail = data.detail;
+        throw new Error(typeof detail === "string" ? detail : detail?.message || JSON.stringify(detail));
+      }
+      batchValidated = true;
+      document.getElementById("batch-preview-count").textContent =
+        data.count + " valid records · " + data.columns + " required features";
+      const previewFields = ["protocol_type","service","flag","duration","src_bytes","dst_bytes"];
+      renderTable(
+        document.getElementById("batch-preview-table"),
+        ["Row", ...previewFields],
+        data.preview.map((record, index) => [index + 1, ...previewFields.map(name => record[name])])
+      );
+      document.getElementById("batch-preview-wrap").classList.remove("hidden");
+      runBatchButton.disabled = !apiOnline;
+      setBatchMessage("CSV validated successfully. Preview shown below. Ready to analyze " + data.count + " records.", "success");
+    } catch (error) {
+      batchValidated = false;
+      setBatchMessage(error.message || "CSV validation failed.", "error");
+    } finally {
+      previewBatchButton.disabled = false;
+    }
+  });
+
+  runBatchButton.addEventListener("click", async () => {
+    if (!selectedBatchFile || !batchValidated || !apiOnline) return;
+    const formData = new FormData();
+    formData.append("file", selectedBatchFile);
+    formData.append("task", mode === "binary" ? "binary_label" : "class_label");
+    runBatchButton.disabled = true;
+    previewBatchButton.disabled = true;
+    setBatchMessage("Analyzing CSV records with the " + (mode === "binary" ? "binary" : "five-class") + " model…", "");
+    try {
+      const response = await fetch(API_BASE + "/predict/csv", {method:"POST", body:formData});
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail = data.detail;
+        throw new Error(typeof detail === "string" ? detail : detail?.message || JSON.stringify(detail));
+      }
+      batchPredictions = data.predictions;
+      const counts = {};
+      batchPredictions.forEach(item => { counts[item.prediction] = (counts[item.prediction] || 0) + 1; });
+      const summary = document.getElementById("batch-summary");
+      summary.replaceChildren();
+      Object.entries(counts).sort((a,b) => b[1] - a[1]).forEach(([label, count]) => {
+        const card = document.createElement("div");
+        card.className = "batch-stat";
+        const value = document.createElement("strong");
+        value.textContent = count;
+        const caption = document.createElement("span");
+        caption.textContent = label;
+        card.append(value, caption);
+        summary.append(card);
+      });
+      const visibleRows = batchPredictions.slice(0, 100).map((item, index) => [
+        index + 1,
+        item.prediction,
+        Number.isFinite(item.confidence) ? (item.confidence * 100).toFixed(1) + "%" : "N/A",
+        typeof item.attack_probability === "number" ? (item.attack_probability * 100).toFixed(1) + "%" : "N/A"
+      ]);
+      renderTable(
+        document.getElementById("batch-result-table"),
+        ["Row", "Prediction", "Confidence", "Attack probability"],
+        visibleRows
+      );
+      document.getElementById("batch-result-count").textContent =
+        data.count + " predictions" + (data.count > 100 ? " · showing first 100" : "");
+      document.getElementById("batch-results").classList.remove("hidden");
+      setBatchMessage("Analysis complete. " + data.count + " records processed.", "success");
+    } catch (error) {
+      setBatchMessage(error.message || "Batch analysis failed.", "error");
+    } finally {
+      previewBatchButton.disabled = !selectedBatchFile;
+      runBatchButton.disabled = !batchValidated || !apiOnline;
+    }
+  });
+
+  document.getElementById("export-batch").addEventListener("click", () => {
+    if (!batchPredictions.length) return;
+    const headers = ["row", "prediction", "confidence", "attack_probability"];
+    const escapeCsv = value => {
+      const text = value == null ? "" : String(value);
+      return '"' + text.replaceAll('"', '""') + '"';
+    };
+    const lines = [headers.join(",")];
+    batchPredictions.forEach((item, index) => {
+      lines.push([
+        index + 1,
+        item.prediction,
+        item.confidence ?? "",
+        item.attack_probability ?? ""
+      ].map(escapeCsv).join(","));
+    });
+    const blob = new Blob([lines.join("\\r\\n")], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "sentrinet_batch_predictions.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
 
   renderForm();
   if (allFields.length !== 40) {
