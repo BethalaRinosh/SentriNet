@@ -94,7 +94,12 @@ def _validate_records(records: list[dict[str, Any]]) -> None:
                     status_code=422,
                     detail=f"Record {index}: feature '{name}' must be numeric.",
                 )
-            if not math.isfinite(value):
+            try:
+                finite = math.isfinite(value)
+            except OverflowError:
+                # Extremely large JSON integers cannot be represented as floats.
+                finite = False
+            if not finite:
                 raise HTTPException(
                     status_code=422,
                     detail=f"Record {index}: feature '{name}' must be finite.",
