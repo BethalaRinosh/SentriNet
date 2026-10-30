@@ -581,3 +581,8 @@ The binary result panel displays attack probability with a red horizontal indica
 The dashboard landing section summarizes the official NSL-KDD dataset split sizes (125,973 training records and 22,544 held-out test records), the 40 model inputs, and the two separately trained Random Forest classifiers. Sidebar navigation links to the overview, single-record threat analyzer, batch CSV workspace, and model reference. The displayed dataset counts are fixed benchmark metadata, not live traffic telemetry. The overview does not present validation metrics as official test results.
 
 - **Step 17:** Added a presentation-oriented overview landing section with dataset/model summary cards, direct links into single-record and batch analysis, and sidebar navigation for Overview, Threat Analyzer, Batch Analysis, and Model Reference. The existing inference and batch workflows remain in place.
+
+
+## Separate dashboard workspaces (Step 17 revision)
+
+The dashboard uses independent single-page application views controlled by the sidebar. Overview, Threat Analyzer, Batch Analysis, Model Performance, and Model Information render as separate views; selecting a tab switches the visible workspace and resets scroll to the top instead of scrolling to an anchor on one long page. The Model Performance view is a clearly marked placeholder until the evaluation analytics are implemented in the next step. The existing single-record inference and CSV batch workflows are preserved.
