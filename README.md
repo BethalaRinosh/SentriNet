@@ -2,7 +2,7 @@
 ### Network Intrusion Detection Using Machine Learning
 **Tagline:** *Every packet, judged.*
 
-> **Project status: Core development, Step 17 multi-view navigation, and Step 18 model performance dashboard are implemented.** The author verified 52 automated tests before the later frontend-only presentation updates. The browser CSV workflow was manually exercised successfully. The current dashboard includes single-record inference, four illustrative scenario presets, batch CSV analysis, and an overview landing section. Presentation analytics are being added incrementally; no live packet capture is implemented.
+> **Project status: Steps 1–19 are implemented and verified.** The application includes the NSL-KDD ML pipeline, saved classifiers, FastAPI inference, single-record and batch CSV analysis, five independent dashboard views, official-test performance analytics, and motion polish. Step 19 integration verification passed: 52 automated tests, 23 focused API tests, Python compilation, JavaScript syntax validation, and manual browser checks of API status, binary/multiclass inference, CSV validation/prediction/export, and offline handling. One non-blocking Starlette/httpx deprecation warning remains. No live packet capture is implemented.
 
 SentriNet is an academic micro project for the **Machine Learning Fundamentals** 3rd Internal Assessment at Karunya Institute of Technology and Sciences. It explores how classical machine-learning models can classify network connection records as normal or malicious and group attacks into five broad categories.
 
@@ -539,9 +539,9 @@ The dependency list in `requirements.txt` contains the libraries used by the cur
 - Feature importance is exploratory and impurity-based. Step 9's official-test evaluation and Step 10's persistence/inference code were locally validated. The FastAPI service and browser dashboard are implemented; browser end-to-end verification remains outstanding.
 
 ## Future work
-- Complete manual browser verification of CSV upload, preview, binary/multiclass prediction, and export. Then consider richer result filtering and explainability.
+- Add prediction explainability that helps users understand which input features influenced a model output, without presenting feature attribution as proof of malicious activity.
+- Investigate robustness to distribution shift and the weak R2L/U2R results using training-only validation; keep the official test set untouched for final evaluation.
 - Consider UNSW-NB15 or CICIDS2017 only as an optional extension after the NSL-KDD pipeline is working.
-- Investigate explainability and robustness to distribution shift.
 
 ## Author
 **Bethala Rinosh**  
@@ -593,6 +593,20 @@ The dashboard uses independent single-page application views controlled by the s
 The frontend's **Model Performance** view presents the recorded official `KDDTest+` evaluation for the locked Random Forest and Decision Tree pipelines. It separates binary and five-class results, visualizes accuracy/F1/ROC-AUC comparisons, and includes the recorded class-wise F1 and selected recall values. The dashboard labels class-wise F1 values as rounded and keeps training-only cross-validation results separate from official test metrics.
 
 The view does not fabricate confusion-matrix counts. The evaluation script generates full confusion matrices and classification reports locally under `reports/official_evaluation/`, but those generated report files are ignored by Git and are not part of the repository. The page therefore explains this limitation rather than rendering guessed matrix values. Official test results must remain a final benchmark and must not be used for hyperparameter tuning.
+
+
+## End-to-end integration verification (Step 19)
+
+The author completed an integration pass across the automated test suite, API tests, Python compilation, frontend JavaScript syntax, and the running browser application.
+
+- Full automated suite: **52 passed** in 4.32 seconds.
+- Focused API suite: **23 passed** in 2.46 seconds.
+- `python -m compileall app src tests`: completed successfully.
+- `node --check app/frontend/app.js`: completed successfully.
+- Manual browser checks: API connection/readiness, binary and five-class single-record predictions, CSV validation and preview, batch predictions, CSV export, and offline API handling were reported working by the author.
+- One non-blocking `StarletteDeprecationWarning` remains concerning the use of `httpx` with `starlette.testclient.TestClient`; it did not cause test failures.
+
+This verifies the local application workflow described above. It does not establish production deployment readiness or live packet-capture capability.
 
 
 ## Dashboard motion and interaction polish
