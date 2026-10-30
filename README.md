@@ -376,7 +376,7 @@ The plain HTML/CSS/JavaScript dashboard lives in `app/frontend/`:
 
 3. Open [http://127.0.0.1:5500](http://127.0.0.1:5500).
 
-The dashboard checks `/health` and displays whether the API and saved artifacts are available. Choose Binary or Attack family mode, enter the required features, then click **Analyze connection**. The illustrative-value button fills a hand-entered example for UI testing only; it is not a verified NSL-KDD record or live network capture. Reset restores numeric inputs to zero and categorical inputs to their first options.
+The dashboard checks `/health` and displays whether the API and saved artifacts are available. Choose Binary or Attack family mode, enter the required features, then click **Analyze connection**. The demo scenario selector loads one of four illustrative 40-feature records (normal web browsing, DoS-like traffic surge, port-scanning/probe-like activity, and repeated login attempts). These presets are hand-authored demonstration inputs, not verified NSL-KDD records or live network captures; the selected scenario does not force the model output. You can edit any populated field before inference. Reset restores numeric inputs to zero and categorical inputs to their first options.
 
 The backend allows cross-origin requests from the local development origins on ports 5500 and 8000. Keep the API and dashboard local during development. This UI accepts structured connection features and does not capture traffic from a network interface.
 
@@ -562,3 +562,10 @@ Repository: https://github.com/BethalaRinosh/SentriNet
 - **Step 12:** Added the responsive HTML/CSS/JavaScript dashboard in `app/frontend/`, with 40-feature form generation, binary/five-class mode selection, API health status, result/confidence display, illustrative form values, and error/loading states. Added restricted local-development CORS origins so the separately served frontend can call FastAPI. The author verified 9 API tests and 38 total tests after the CORS change.
 - **Step 13:** Hardened API validation to reject non-finite, oversized, and negative numeric features and blank categorical values before model inference. Added regression tests and documented the input contract. The author verified 14 API tests and 43 total tests after the final oversized-integer regression test.
 - **Step 14:** Added UTF-8 CSV validation and preview endpoints, 5 MB/5,000-record limits, strict 40-feature input checks, batch binary/five-class inference, prediction summaries, and CSV export in the dashboard. Added regression tests for batch prediction and invalid uploads. Local verification is pending.
+
+
+## Scenario presets for demonstrations (Step 16)
+
+The manual connection form includes four one-click, hand-authored 40-feature presets: normal web browsing, DoS-like traffic surge, port-scanning/probe-like activity, and repeated login attempts (R2L-style). Loading a preset populates the existing form controls; users can edit the values and choose either Binary or Attack family classification before running inference. Preset names are descriptive scenarios only: they do not force a prediction, guarantee a particular label, or represent captured/ground-truth traffic. They exist to make a faculty demonstration repeatable without manually entering all 40 features.
+
+- **Step 16:** Added four editable, illustrative scenario presets to the manual connection analyzer so a presenter can load a complete 40-feature example in one click. Presets cover normal web browsing, DoS-like traffic surge, probe-like scanning, and repeated login attempts. The model still determines the prediction; scenario labels do not hard-code outputs.
